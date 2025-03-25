@@ -57,8 +57,7 @@
     opacity: 0.2;
 }
 
-.movie-card .likeBtn:active .likeIcon{
-    fill: rgba(255, 0, 0, 0.648);
+.likeIcon{
     transition: .2s ease;
 }
 
