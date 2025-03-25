@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { search, loadMovies, loadSeries } from "../services/serviceAPI";
 
@@ -8,6 +8,26 @@ export function SearchProvider({ children }) {
     const location = useLocation();
     const [searchQuery, setSearchQuery] = useState("");
     const [contents, setContent] = useState([]);
+    const [favorites, setFavorites] = useState([]);
+
+    useEffect(() => {
+        const storedFavorites = localStorage.getItem('favorites');
+        if (storedFavorites) setFavorites(JSON.parse(storedFavorites));
+    }, [])
+
+    useEffect(() => {
+        localStorage.setItem("favorites", JSON.stringify(favorites));
+        console.log(favorites);
+    }, [favorites])
+
+    const addToFavorites = (movie) => {
+        setFavorites(prev => {
+            if (prev.some(content => content.id === movie.id)) {
+                return prev.filter(fav => fav.id !== movie.id);
+            }
+            return [...prev, movie];
+        });
+    }
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -28,7 +48,9 @@ export function SearchProvider({ children }) {
         contents,
         setSearchQuery,
         response,
-        handleSearch
+        handleSearch,
+        favorites,
+        addToFavorites
     }
 
     return  (
