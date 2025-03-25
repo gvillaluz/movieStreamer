@@ -1,0 +1,36 @@
+.search-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 280px;
+}
+
+.search-container form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    gap: 7px;
+}
+
+.search-container input {
+    position: relative;
+    width: 260px;
+    height: 34px;
+    outline: none;
+    letter-spacing: .8px;
+}
+
+.search-container button {
+    height: 42px;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 3px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.085);
+    background-color: rgba(255, 0, 0, 0.652);
+}
+
+.search-container button:hover {
+    opacity: .9;
+}

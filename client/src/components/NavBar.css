@@ -1,0 +1,45 @@
+.navbar {
+    position: relative;
+    bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    height: 13vh;
+    align-items: center;
+    margin-bottom: 3.5rem;
+}
+
+.navbar .navbar-tabs {
+    width: 390px;
+    height: 10vh;
+    display: flex;
+    align-items: center;
+}
+
+.navbar .navbar-tabs ul {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+    height: 20px;
+    margin: 0;
+}
+
+.navbar .navbar-tabs ul li {
+    list-style-type: none;
+    padding: 9px;
+    margin: 0;
+    width: 65px;
+    height: 28px;
+    align-items: center;
+    cursor: pointer;
+    transition: .1s background ease-in;
+    border-radius: 3px;
+}
+
+.navbar .navbar-tabs ul li:hover {
+    background-color: rgba(82, 82, 82, 0.648);
+}
+
+.navbar .navbar-tabs ul .link {
+    text-decoration: none;
+    color: white;   
+}
