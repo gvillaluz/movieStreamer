@@ -1,8 +1,11 @@
 import SearchBar from "./SearchBar";
 import './NavBar.css';
 import { Link } from "react-router-dom";
+import { useContext } from "react";
+import { SearchContext } from "../context/searchContext";
 
 const NavBar = () => {
+    const { isDescriptionPage, setIsDescriptionPage } = useContext(SearchContext);
     return (
         <div className="navbar">
             <h2>Movie Stream</h2>
@@ -14,7 +17,7 @@ const NavBar = () => {
                     <Link to="/movie" className="link">
                         <li>Movies</li>
                     </Link>
-                    <Link to="/tv" className="link">
+                    <Link to="/series" className="link">
                         <li>Tv Series</li>
                     </Link>
                     <Link to="/favorites" className="link">
@@ -22,7 +25,7 @@ const NavBar = () => {
                     </Link>
                 </ul>
             </div>
-            <SearchBar />
+            {!isDescriptionPage && <SearchBar />}
         </div>
     )
 }

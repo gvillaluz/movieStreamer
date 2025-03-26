@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { search, loadMovies, loadSeries } from "../services/serviceAPI";
 
 export const SearchContext = createContext();
@@ -9,6 +9,13 @@ export function SearchProvider({ children }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [contents, setContent] = useState([]);
     const [favorites, setFavorites] = useState([]);
+    const [isDescriptionPage, setIsDescriptionPage] = useState(false);
+    const [descriptionContentId, setDescriptionContentId] = useState(null);
+
+    useEffect(() => {
+        const isDescription = !["/movie", "/series", "/favorites", "/"].includes(location.pathname);
+        setIsDescriptionPage(isDescription);
+    }, [location.pathname]);
 
     useEffect(() => {
         const storedFavorites = localStorage.getItem('favorites');
@@ -32,6 +39,8 @@ export function SearchProvider({ children }) {
     const handleSearch = async (e) => {
         e.preventDefault();
         if (!searchQuery.trim()) return;
+
+        console.log(location.pathname);
         const data = await search(searchQuery, location.pathname);
         setContent(data);
         setSearchQuery("");
@@ -39,7 +48,7 @@ export function SearchProvider({ children }) {
 
     const response = async (type) => {
         setContent([]);
-        const data = type == "Series" ? await loadSeries() : await loadMovies();
+        const data = type == "series" ? await loadSeries() : await loadMovies();
         setContent(data);
     }
 
@@ -50,7 +59,11 @@ export function SearchProvider({ children }) {
         response,
         handleSearch,
         favorites,
-        addToFavorites
+        addToFavorites,
+        isDescriptionPage,
+        setIsDescriptionPage,
+        descriptionContentId,
+        setDescriptionContentId
     }
 
     return  (

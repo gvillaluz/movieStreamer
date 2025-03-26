@@ -5,7 +5,7 @@ import './MovieList.css';
 import { SearchContext } from "../context/searchContext";
 
 const MovieList = (props) => {
-    const { contents, response } =  useContext(SearchContext);
+    const { contents, response} =  useContext(SearchContext);
     const [loading, setLoading] = useState(true);
     
     useEffect(() => {

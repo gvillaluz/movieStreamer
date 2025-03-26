@@ -9,7 +9,7 @@
 }
 
 .navbar .navbar-tabs {
-    width: 390px;
+    width: auto;
     height: 10vh;
     display: flex;
     align-items: center;

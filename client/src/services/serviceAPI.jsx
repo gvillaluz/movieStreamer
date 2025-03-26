@@ -12,9 +12,9 @@ export const loadMovies = async () => {
         }
     } catch (err) {
         console.log(err);
+        return null;
     }
 
-    console.log(movies);
     return movies;
 }
 
@@ -25,20 +25,43 @@ export const loadSeries = async () => {
             const response = await axios.get(`${API_URL}/tv/popular?api_key=${API_KEY}&page=${i}`);
             series.push(...response.data.results);
         }
-        console.log(series);
         return series;
     } catch (err) {
         console.log(err);
+        return null;
     }
 }
 
 export const search = async (searchQuery, pathname) => {
-    if (pathname === "/") pathname = "/multi"
+    if (pathname === "/" && pathname !== "/movie" && pathname !== "series") {
+        pathname = "/multi";
+    } else if (pathname === "/series") {
+        pathname = "/tv";
+    }
+    
     try {
         const response = await axios.get(`${API_URL}/search${pathname}?api_key=${API_KEY}&query=${encodeURIComponent(searchQuery)}`);
-        console.log(response.data.results);
         return response.data.results;
     } catch (err) {
         alert(err);
+        return null;
     } 
+}
+
+export const searchById = async (id, category) => {
+    if (!id) return null;
+    
+    try {
+        const response = await axios.get(`${API_URL}/${category}/${id}?api_key=${API_KEY}`);
+        return response.data;
+    } catch (err) {
+        console.log(err);
+        return null;
+    }
+}
+
+export const getVidById = async (id, category) => {
+    const video = await axios.get(`${API_URL}/${category}/${id}/videos?api_key=${API_KEY}`);
+    const trailer = video.data.results.find(v => v.type === "Trailer" && v.site === "YouTube");
+    return trailer ?? null;
 }
