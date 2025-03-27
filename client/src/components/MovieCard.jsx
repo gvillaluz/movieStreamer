@@ -5,7 +5,7 @@ import { SearchContext } from '../context/searchContext';
 import { useNavigate } from 'react-router-dom';
 
 const MovieCard = ({ content, type }) => {
-    const { favorites, addToFavorites, setDescriptionContentId } = useContext(SearchContext);
+    const { favorites, addToFavorites } = useContext(SearchContext);
     const navigate = useNavigate();
     const imageUrl = `https://image.tmdb.org/t/p/w200${content.poster_path}`;
     const title = !content.title ? content.name : content.title;
@@ -18,7 +18,7 @@ const MovieCard = ({ content, type }) => {
             onClick={() => {
                     console.log("Id from MovieCard " + content.id)
                     navigate(`/${type.toLowerCase()}/${content.id}/${title.replaceAll(/\s+/g, "").toLowerCase()}`);
-                    setDescriptionContentId(content.id);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                 }
             }
         >
@@ -26,7 +26,10 @@ const MovieCard = ({ content, type }) => {
             <button 
                 type='button' 
                 className='likeBtn'
-                onClick={() => addToFavorites(content)}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    addToFavorites(content);
+                }}
             >
                 <FaHeart className='likeIcon' fill={isFavorite ? "rgba(255, 0, 0, 0.648)" : "white"} />
             </button>

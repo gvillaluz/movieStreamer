@@ -5,6 +5,8 @@
     cursor: pointer;
     height: 380px;
     animation: fadeIn .4s ease-in-out;
+    width: 200px;
+    z-index: 1;
 }
 
 .movie-card #poster {
@@ -15,6 +17,7 @@
     display: inline-block;
     transition: .2s ease-in-out;
     height: 300px;
+    object-fit: contain;
 }
 
 .movie-card .likeBtn {
@@ -30,6 +33,7 @@
     align-items: center;
     justify-content: center;
     visibility: hidden;
+    z-index: 99;
 }
 
 .movie-card .movie-details {

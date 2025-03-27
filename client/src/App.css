@@ -83,3 +83,26 @@
   position: relative;
   width: 100%;
 }
+
+.dropdown {
+  margin-bottom: 50px;
+}
+
+.dropdown select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 10px;
+  border: .8px solid white;
+  border-radius: 5px;
+  background-color: #1E1E1E;
+  color: white  ;
+  font-size: 1em;
+  text-align: center;
+  scrollbar-width: none;
+  max-height: 200px;
+}
+
+select::-webkit-scrollbar {
+  display: none; 
+}

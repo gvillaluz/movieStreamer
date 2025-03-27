@@ -10,7 +10,6 @@ export function SearchProvider({ children }) {
     const [contents, setContent] = useState([]);
     const [favorites, setFavorites] = useState([]);
     const [isDescriptionPage, setIsDescriptionPage] = useState(false);
-    const [descriptionContentId, setDescriptionContentId] = useState(null);
 
     useEffect(() => {
         const isDescription = !["/movie", "/series", "/favorites", "/"].includes(location.pathname);
@@ -24,7 +23,6 @@ export function SearchProvider({ children }) {
 
     useEffect(() => {
         localStorage.setItem("favorites", JSON.stringify(favorites));
-        console.log(favorites);
     }, [favorites])
 
     const addToFavorites = (movie) => {
@@ -62,8 +60,6 @@ export function SearchProvider({ children }) {
         addToFavorites,
         isDescriptionPage,
         setIsDescriptionPage,
-        descriptionContentId,
-        setDescriptionContentId
     }
 
     return  (

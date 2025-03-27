@@ -1,40 +1,42 @@
 import { useEffect, useState } from "react";
-import { getVidById, searchById } from "../services/serviceAPI";
-import { useParams } from "react-router-dom";
+import { searchById } from "../services/serviceAPI";
+import { useLocation, useParams } from "react-router-dom";
 import Details from '../components/Details'
 import Trailer from "../components/Trailer";
 import './DescriptionPage.css'
+import MovieList from "../components/MovieList";
+import RelatedContent from "../components/RelatedContent";
 
 const DescriptionPage = () => {
+    const location = useLocation();
     const { id } = useParams();
     const [content, setContent] = useState({});
     const [loading, setLoading] = useState(true);
-    const [video, setVideo] = useState({});
+    const [category, setCateogry] = useState("");
     
 
     useEffect(() => {
         const getContent = async () => {
             const category = location.pathname.includes("movie") ? "movie" :
                  location.pathname.includes("series") ? "tv" : "";
+
+            setCateogry(category);
+
             const data = await searchById(id, category);
-            const video = await getVidById(id, category);
             setContent(data);
-            setVideo(video);
             setLoading(false);
         }
 
         getContent();
     }, [id, location.pathname]);
 
-    console.log(content)
-
     return (
         (!loading ? (
             <div className="description">
-                <Details content={content} />
-                <Trailer video={video} />
-                <div className="description-section">
-                    <h3>More Like This</h3>
+                <Details content={content.data} />
+                {content.trailer && <Trailer video={content.trailer.key} />}
+                <div className="description-section related">
+                    <RelatedContent relatedContent={content.data.genres} category={category} id={content.data.id} />
                 </div>
             </div>
         ) : (

@@ -53,15 +53,25 @@ export const searchById = async (id, category) => {
     
     try {
         const response = await axios.get(`${API_URL}/${category}/${id}?api_key=${API_KEY}`);
-        return response.data;
+        const video = await axios.get(`${API_URL}/${category}/${id}/videos?api_key=${API_KEY}`);
+        const trailer = video.data.results.find(v => v.type === "Trailer" && v.site === "YouTube");
+        const data = response.data;
+
+        const value = {
+            data,
+            trailer
+        }
+
+        console.log(value);
+        return value;
     } catch (err) {
         console.log(err);
         return null;
     }
 }
 
-export const getVidById = async (id, category) => {
-    const video = await axios.get(`${API_URL}/${category}/${id}/videos?api_key=${API_KEY}`);
-    const trailer = video.data.results.find(v => v.type === "Trailer" && v.site === "YouTube");
-    return trailer ?? null;
+export const getSimilarContent = async (category, genres) =>  {
+    const similar = await axios.get(`${API_URL}/discover/${category}?api_key=${API_KEY}&with_genres=${genres}`);
+
+    return similar.data.results ?? null;
 }

@@ -12,3 +12,8 @@
     width: 100%;
     position: absolute;
 }
+
+.no-content {
+    text-align: center;
+    margin-top: 150px;
+}

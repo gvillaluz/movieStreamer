@@ -13,6 +13,7 @@
 
 .noVid {        
     text-align: center;
+    padding: 120px 20px 50px;
 }
 
 .description .trailer {
@@ -34,6 +35,7 @@
 .description .description-section img {
     height: 380px;
     width: 1fr;
+    object-fit: contain;
 }
 
 .description .description-section .text-container {
@@ -41,10 +43,43 @@
     padding: 0 40px;
 }
 
+.description .related {
+    padding-top: 10px;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.description .related h3 {
+    font-size: 2.5em;
+    margin-top: 10px;
+}
+
 p {
     margin: 11px auto;
+    line-height: 1.4;
+    text-align: justify;
+}
+
+.overview {
+    margin-bottom: 0;
+}
+
+.overview-text {
+    margin-top: 0;
+    margin-bottom: 20px;
 }
 
 .title {
     margin-top: 0;
+}
+
+strong {
+    font-size: 1.1em;
+}
+.related .related-list {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    row-gap: 10px;
+    margin: 0 auto;
 }
