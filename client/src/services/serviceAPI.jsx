@@ -61,8 +61,7 @@ export const searchById = async (id, category) => {
             data,
             trailer
         }
-
-        console.log(value);
+        
         return value;
     } catch (err) {
         console.log(err);

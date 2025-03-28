@@ -13,7 +13,6 @@ const RelatedContent = ({relatedContent, category, id}) => {
             setContent(data);
             setLoading(false);
         }
-        console.log(genres)
 
         getRelatedContent();
     }, [relatedContent]); 
@@ -23,8 +22,6 @@ const RelatedContent = ({relatedContent, category, id}) => {
     );
 
     const newContent = uniqueContents.filter(con => con.id !== id);
-
-    console.log(content);
 
     return (
         (!loading ? (

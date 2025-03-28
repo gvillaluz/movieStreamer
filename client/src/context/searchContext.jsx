@@ -10,6 +10,7 @@ export function SearchProvider({ children }) {
     const [contents, setContent] = useState([]);
     const [favorites, setFavorites] = useState([]);
     const [isDescriptionPage, setIsDescriptionPage] = useState(false);
+    const [searchResults, setSearchResults] = useState("");
 
     useEffect(() => {
         const isDescription = !["/movie", "/series", "/favorites", "/"].includes(location.pathname);
@@ -37,11 +38,10 @@ export function SearchProvider({ children }) {
     const handleSearch = async (e) => {
         e.preventDefault();
         if (!searchQuery.trim()) return;
-
-        console.log(location.pathname);
+        
         const data = await search(searchQuery, location.pathname);
         setContent(data);
-        setSearchQuery("");
+        setSearchResults(searchQuery);
     }
 
     const response = async (type) => {
@@ -60,6 +60,8 @@ export function SearchProvider({ children }) {
         addToFavorites,
         isDescriptionPage,
         setIsDescriptionPage,
+        searchResults,
+        setSearchResults
     }
 
     return  (

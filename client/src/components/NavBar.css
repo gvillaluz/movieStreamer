@@ -5,7 +5,7 @@
     justify-content: space-between;
     height: 13vh;
     align-items: center;
-    margin-bottom: 3.5rem;
+    margin-bottom: 3rem;
 }
 
 .navbar .navbar-tabs {
@@ -26,8 +26,8 @@
 .navbar .navbar-tabs ul li {
     list-style-type: none;
     padding: 9px;
-    margin: 0;
-    width: 65px;
+    margin: 0 auto;
+    width: 67px;
     height: 28px;
     align-items: center;
     cursor: pointer;
@@ -42,4 +42,9 @@
 .navbar .navbar-tabs ul .link {
     text-decoration: none;
     color: white;   
+}
+
+.active {
+    background-color: rgba(82, 82, 82, 0.479);
+    border-radius: 3px;
 }

@@ -17,3 +17,13 @@
     text-align: center;
     margin-top: 150px;
 }
+
+.main-content {
+    text-align: left;
+}
+
+.main-content h1 {
+    font-weight: 400;
+    font-size: 2.3em;
+    margin-bottom: 50px;
+}
