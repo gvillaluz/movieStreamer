@@ -1,6 +1,6 @@
 import { useState } from "react";
-import EmptyList from "../components/EmptyList";
-import MovieList from "../components/MovieList";
+import EmptyList from "../../components/EmptyList";
+import MovieList from "../../components/MovieList";
 
 const TvSeriesPage = () => {
     return (

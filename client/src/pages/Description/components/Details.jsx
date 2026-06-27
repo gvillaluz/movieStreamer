@@ -1,8 +1,8 @@
-const Details = ({content}) =>  {
+const Details = ({content, handleWatchNow}) =>  {
     const imageUrl = `https://image.tmdb.org/t/p/w200${content.poster_path}`;
     return (
         <>
-        <div className="description-section">
+            <div className="description-section">
                 <img src={imageUrl} alt="Content" />
                 <div className="text-container">
                     <h2 className="title">{content.title ? content.title : content.name}</h2>
@@ -21,6 +21,12 @@ const Details = ({content}) =>  {
                     <p className="overview"><strong>Overview: </strong> </p>
                     <p className="overview-text">{content.overview}</p>
                     <p> ⭐ {content.vote_average} ({content.vote_count} votes)</p>
+                    <button 
+                        className="watch-btn"
+                        onClick={handleWatchNow}
+                    >
+                        ▶ Watch now
+                    </button>
                 </div>
             </div>
         </>

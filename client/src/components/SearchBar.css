@@ -20,15 +20,21 @@
     height: 34px;
     outline: none;
     letter-spacing: .8px;
+    padding-left: 12px;
 }
 
 .search-container button {
+    width: 200px;
     height: 42px;
     border: none;
     padding: 12px 18px;
     border-radius: 3px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.085);
     background-color: rgba(255, 0, 0, 0.652);
+    font-size: 16px;
+    padding: 10px;
+    text-align: center;
+    transition: .2s background ease-in-out;
 }
 
 .search-container button:hover {

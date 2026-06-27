@@ -1,5 +1,5 @@
-import { getSimilarContent } from "../services/serviceAPI";
-import MovieCard from "./MovieCard";
+import { getSimilarContent } from "../../../services/serviceAPI";
+import MovieCard from "../../../components/MovieCard";
 import { useState, useEffect } from 'react'
 
 const RelatedContent = ({relatedContent, category, id}) => {
