@@ -4,6 +4,8 @@
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 10px;
     margin: 0 auto;
+    justify-content: center;
+    align-items: start;
 }
 
 .loading {
@@ -20,10 +22,54 @@
 
 .main-content {
     text-align: left;
+    width: 100%;
 }
 
 .main-content h1 {
     font-weight: 400;
     font-size: 2.3em;
     margin-bottom: 50px;
+}
+
+@media (max-width: 1024px) {
+    .main-content h1 {
+        font-size: 1.8em;
+        margin-bottom: 20px;
+    }
+
+    .movie-list {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content h1 {
+        font-size: 1.7em;
+        margin-bottom: 15px;
+    }
+
+    .movie-list {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    }
+}
+
+@media (max-width: 576px) {
+    .main-content h1 {
+        font-size: 1.6em;
+        margin-bottom: 15px;
+    }
+    
+    .movie-list {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+}
+
+@media (max-width: 375px) {
+    .main-content h1 {
+        font-size: 1.5em;
+    }
+
+    .movie-list {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
 }

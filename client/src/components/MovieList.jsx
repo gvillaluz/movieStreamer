@@ -5,7 +5,7 @@ import './Movielist.css';
 import { SearchContext } from "../context/searchContext";
 import { useLocation } from "react-router-dom";
 
-const Movieast = (props) => {
+const MovieList = (props) => {
     const { contents, response, searchResults, setSearchResults} =  useContext(SearchContext);
     const [loading, setLoading] = useState(true);
     const [type, setType] = useState("");
@@ -26,6 +26,10 @@ const Movieast = (props) => {
 
     const uniqueContents = Array.from(
         new Map(contents.map((content) => [content.id, content])).values()
+    ).filter(con => 
+        con.poster_path &&
+        (con.release_date || con.first_air_date) && 
+        (con.title || con.name)
     );
 
     return (
@@ -42,10 +46,7 @@ const Movieast = (props) => {
 
                     <div className="movie-list">
                         {
-                            uniqueContents.map((content, index) => (
-
-                                content.poster_path && <MovieCard key={content.id + '-' + index} content={content} type={props.type} />
-                            ))
+                            uniqueContents.map((content, index) => <MovieCard key={content.id + '-' + index} content={content} type={props.type} />)
                         }
                     </div> 
                 </div>
@@ -64,4 +65,4 @@ const Movieast = (props) => {
     )
 }
 
-export default Movieast;
+export default MovieList;

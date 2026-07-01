@@ -1,8 +1,9 @@
 import { getSimilarContent } from "../../../services/serviceAPI";
 import MovieCard from "../../../components/MovieCard";
 import { useState, useEffect } from 'react'
+import '../components/WatchPageRelated.css'
 
-const RelatedContent = ({category, id}) => {
+const WatchPageRelated = ({category, id}) => {
     const [loading, setLoading] = useState(true);
     const [content, setContent] = useState([]);
 
@@ -20,19 +21,14 @@ const RelatedContent = ({category, id}) => {
         new Map(content.map((con) => [con.id, con])).values()
     );
 
-    const newContent = uniqueContents.filter(con => 
-        con.id !== Number(id) &&
-        con.poster_path &&
-        (con.release_date || con.first_air_date) && 
-        (con.title || con.name)
-    );
+    const newContent = uniqueContents.filter(con => con.id !== id);
 
     return (
         (!loading ? (
             (newContent.length !== 0 &&
                 <>
                     <h3>More Like This</h3>
-                    <div className="related-list">
+                    <div className="watch-related-list">
                         {newContent.map((content) => {
                             if (!content.release_date && !content.first_air_date) {
                                 console.log("INVALID ITEM:", content);
@@ -58,4 +54,4 @@ const RelatedContent = ({category, id}) => {
     )
 }
 
-export default RelatedContent;
+export default WatchPageRelated;

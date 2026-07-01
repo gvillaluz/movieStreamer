@@ -1,8 +1,25 @@
+.watch-page-header {
+  width: 100%;
+  height: auto;
+  padding: 20px 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.watch-page-header .title {
+  text-align: left;
+  margin: 0;
+  font-size: 1.1em;
+  
+}
+
 .main-watch-container {
     display: flex;
     height: 100vh;
     margin-left: -2rem;
     margin-bottom: -50px;
+    margin-right: -2rem;
 }
 
 .main-watch-container .video {
@@ -15,32 +32,46 @@
     padding: 30px;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.main-watch-container .detail-container p {
+    font-size: 18px;
 }
 
 .season-container {
     display: flex;
     flex-direction: column;
     width: 100%;
-    gap: 10px;
+    scrollbar-width: none;
 }
 
 .season-container select {
     padding: 15px;
     border: none;
     border-radius: 5px;
-    text-align: center;
+}
+
+.season-container select option {
+    padding: 10px;
+    height: 20px
 }
 
 .episode-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-    gap: 8px;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 300px;
+  text-align: left;
+  margin-top: 10px;
 }
 
 .movie {
     padding: 15px;
-    width: 100%;
     justify-content: center;
     align-items: center;
     display: flex;
@@ -48,21 +79,86 @@
 }
 
 .series {
-    height: 50px;
-    width: 50px;
-    background-color: rgba(128, 128, 128, 0.404);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 5px;
-    cursor: pointer;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+  height: auto;
+  align-items: flex-start;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.current {
-    text-align: center;
-    border-radius: 5px;
-    background-color: rgba(255, 0, 0, 0.336);
-    font-size: 18px;
+.series:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.series.current {
+  background: rgba(255, 0, 0, 0.15);
+}
+
+.series .episode-img {
+  object-fit: contain;
+  aspect-ratio: 16/9;
+  height: auto;
+  width: 120px;
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+
+.series .episode-detail {
+  height: fit-content;
+  flex: 1;
+  min-width: 0;
+}
+
+.series .episode-detail .episode-count-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.series .episode-detail .episode-count-container h4 {
+  text-align: left;
+  margin: 0;
+}
+
+.series .episode-detail .episode-count-container p {
+  margin: 0;
+}
+
+.series .episode-detail .episode-overview {
+  font-size: 13px;
+  opacity: 0.8;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: auto;
+  margin-top: 4px;
+}
+
+.movie-detail {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.badges-container {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.badges-container .badges {
+  padding: 5px 10px;
+  border-radius: 50px;
+  border: 1px grey solid;
+  font-size: 14px;
 }
 
 .bars {
@@ -98,9 +194,160 @@
   margin-bottom: 10px;
   opacity: 0.7;
   word-spacing: 5px;
-  width: 100px;
+  width: 70px;
+}
+
+.back-btn.mobile {
+  display: none;
+  margin-bottom: 0;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(121, 121, 121, 0.568);
+  border-radius: 50px;
+  position: absolute;
+  top: 15px;
+  left: 15px;
 }
 
 .back-btn:hover {
   opacity: 1;
+}
+
+.custom-select {
+  position: relative;
+}
+
+.selected {
+  background: #58585867;
+  color: white;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #1a1a1a;
+  border-radius: 6px;
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.option {
+  padding: 10px;
+  cursor: pointer;
+  color: white;
+}
+
+.option:hover {
+  background: #333;
+}
+
+.option.active {
+  background: #e50914;
+}
+
+.title-and-ratings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.title-and-ratings h4 {
+  font-size: 1.3em;
+  margin: 0;
+}
+
+.title-and-ratings p {
+  font-size: 1.3em;
+  margin: 0;
+}
+
+.sub-detail {
+  font-size: 1em !important;
+  margin: 0;
+  text-align: left;
+}
+
+.overview-container {
+  max-height: 90px;
+  overflow-y: hidden;
+  transition: max-height 0.3s ease;
+  position: relative;
+  margin: 10px 0 0;
+}
+
+.overview-container.viewing {
+  max-height: 1000px;
+}
+
+.overview-container .overview {
+  text-align: justify;
+  font-size: 14px !important;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.overview-toggle {
+  background: none;
+  border: none;
+  color: rgba(255, 0, 0, 0.719);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 0;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  margin-bottom: 10px;
+}
+
+
+@media (max-width: 1024px) {
+  .watch-page-header {
+    display: flex;
+  }
+
+  .back-btn.mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .back-btn.desktop {
+    display: none;
+  }
+
+  .main-watch-container {
+    flex-direction: column;
+    margin: 0;
+    height: auto;
+    width: 100%;
+  }
+
+  .main-watch-container .video {
+    aspect-ratio: 16/9;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+  }
+
+  .main-watch-container .detail-container {
+    height: auto;
+    padding: 0;
+    margin-top: 20px;
+  }
+
+  .movie {
+    display: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .watch-page-header .title {
+    font-size: 1em;
+  }
 }

@@ -2,6 +2,7 @@ import { useContext, useState } from "react";
 import EmptyList from "../../components/EmptyList";
 import { SearchContext } from "../../context/searchContext";
 import MovieCard from "../../components/MovieCard";
+import '../Favorites/FavoritesPage.css';
 
 const FavoritesPage = () => {
     const { favorites } = useContext(SearchContext);

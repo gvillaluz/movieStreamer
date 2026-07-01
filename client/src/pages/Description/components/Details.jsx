@@ -1,11 +1,13 @@
 const Details = ({content, handleWatchNow}) =>  {
-    const imageUrl = `https://image.tmdb.org/t/p/w200${content.poster_path}`;
+    const imageUrl = `https://image.tmdb.org/t/p/${window.innerWidth < 768 ? 'w342' : 'w500'}${content.poster_path}`;
+    
     return (
         <>
             <div className="description-section">
+                <h2 className="title mobile">{content.title ? content.title : content.name}</h2>
                 <img src={imageUrl} alt="Content" />
                 <div className="text-container">
-                    <h2 className="title">{content.title ? content.title : content.name}</h2>
+                    <h2 className="title desktop">{content.title ? content.title : content.name}</h2>
                     {content.tagline && <p><strong>Tag Line:  </strong>{content.tagline}</p>}
                     <p><strong>{content.release_date ? "Release Date: " : "First Air Date: "}</strong>{content.release_date ? content.release_date : content.first_air_date}</p>
                     {!content.seasons ? (

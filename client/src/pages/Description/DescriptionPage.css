@@ -5,6 +5,10 @@
     height: auto;
 }
 
+.title.mobile {
+    display: none;
+}
+
 .description .description-section {
     display: flex;
     margin: 20px auto 50px;
@@ -70,8 +74,7 @@
 
 p {
     margin: 11px auto;
-    line-height: 1.4;
-    text-align: justify;
+    line-height: 1.2;
 }
 
 .overview {
@@ -81,6 +84,8 @@ p {
 .overview-text {
     margin-top: 0;
     margin-bottom: 20px;
+    text-align: justify;
+    line-height: 1.2;
 }
 
 .title {
@@ -99,44 +104,34 @@ strong {
     margin: 0 auto;
 }
 
-@media (max-width: 576px) {
-    .description .description-section img {
-        height: 240px;
-    }
-
-    strong {
-        font-size: .8em;
-    }
-
-    .description .description-section .text-container {
-        padding: 0 10px;
-    }
-
-    p {
-        margin: 11px auto;
-        line-height: 1;
-        text-align: justify;
-        font-size: 14px;
-    }
-
-    .related .related-list {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        gap: 10px;
-    }
-
-    h2 {
-        font-size: .8em;
+@media (max-width: 1024px) {
+    .description .trailer {
+        margin-bottom: 10px;
     }
 
     .description .related h3 {
-        font-size: 1.3em;
+        font-size: 2em;
+        margin-bottom: 10px;
+    }
+
+    .related .related-list {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
     }
 }
-  
-  /* Small (Tablets) */
-@media (min-width: 577px) and (max-width: 768px) {
+
+@media (max-width: 768px) {
+    .title.desktop {
+        display: block;
+    }
+
+    .description .description-section {
+        display: flex;
+    }
+
     .description .description-section img {
-        height: 320px;
+        aspect-ratio: 2/3;
+        margin-bottom: 10px;
     }
 
     strong {
@@ -154,8 +149,8 @@ strong {
     }
 
     .related .related-list {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 10px;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
     }
 
     h2 {
@@ -164,5 +159,140 @@ strong {
 
     .description .related h3 {
         font-size: 1.7em;
+    }
+}
+
+@media (max-width: 576px) {
+    .title.desktop {
+        display: none;
+    }
+
+    .title.mobile {
+        display: block;
+    }
+
+    .description {
+        width: 22em;
+        padding: 5px;
+        box-sizing: border-box;
+    }
+
+    .description .description-section {
+        margin: 10px auto 10px auto;
+        padding: 10px;
+        flex-direction: column;
+    }
+
+    .description .description-section img {
+        margin-bottom: 10px;
+    }
+
+    strong {
+        font-size: 1.1em;
+    }
+
+    .description .description-section .text-container {
+        text-align: start;
+        padding: 0;
+    }
+
+    p {
+        margin: 11px auto;
+        line-height: 1;
+        font-size: .8em;
+    }
+
+    .overview-text {
+        text-align: justify;
+    }
+
+    .description .description-section iframe {
+        margin: auto;
+    }
+
+    .related .related-list {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 10px;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    h2 {
+        font-size: 1.1em;
+    }
+
+    .description .related h3 {
+        font-size: 1em;
+        margin: 0;
+    }
+
+    .watch-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 375px) {
+    .title.desktop {
+        display: none;
+    }
+
+    .title.mobile {
+        display: block;
+    }
+
+    .description {
+        width: 21em;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    .description .description-section {
+        margin: 10px auto 10px auto;
+        padding: 10px;
+        flex-direction: column;
+    }
+
+    .description .description-section img {
+        height: 420px;
+        margin-bottom: 10px;
+        aspect-ratio: 2/3;
+    }
+
+    strong {
+        font-size: 1em;
+    }
+
+    .description .description-section .text-container {
+        text-align: start;
+        padding: 0;
+    }
+
+    p {
+        margin: 11px auto;
+        line-height: 1;
+        text-align: justify;
+    }
+
+    .description .description-section iframe {
+        margin: auto;
+    }
+
+    .related .related-list {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+        gap: 5px;
+        padding: 0;
+    }
+
+    h2 {
+        font-size: 1.1em;
+    }
+
+    .description .related h3 {
+        font-size: 1em;
+        margin: 0;
+    }
+
+    .watch-btn {
+        width: 100%;
     }
 }

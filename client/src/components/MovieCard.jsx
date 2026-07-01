@@ -9,7 +9,7 @@ const MovieCard = ({ content }) => {
     const navigate = useNavigate();
     const imageUrl = `https://image.tmdb.org/t/p/w200${content.poster_path}`;
     const title = !content.title ? content.name : content.title;
-    const date = !content.release_date ? content.first_air_date + " • Series" : content.release_date + " • Movie";
+    const date = !content.release_date ? content.first_air_date.split('-')[0] + " • Series" : content.release_date.split('-')[0] + " • Movie";
     const isFavorite = favorites.some(fav => fav.id === content.id);
     const type = !content.title ? "series" : "movies";
 
@@ -36,7 +36,6 @@ const MovieCard = ({ content }) => {
             <div className="movie-details">
                 <h4>{title}</h4>
                 <span>{date}</span>
-                <span>{content.runtime}</span>
             </div>
         </div>
     )

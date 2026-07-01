@@ -14,7 +14,6 @@ export const loadMovies = async () => {
             const response = await axios.get(`${API_URL}/movie/popular?api_key=${API_KEY}&page=${i}`);
             movies.push(...response.data.results);
         }
-        console.log(movies)
     } catch (err) {
         console.log(err);
         return null;
@@ -74,8 +73,8 @@ export const searchById = async (id, category) => {
     }
 }
 
-export const getSimilarContent = async (category, genres) =>  {
-    const similar = await axios.get(`${API_URL}/discover/${category}?api_key=${API_KEY}&with_genres=${genres}`);
+export const getSimilarContent = async (category, id) =>  {
+    const similar = await axios.get(`${API_URL}/${category}/${id}/recommendations?api_key=${API_KEY}`);
 
     return similar.data.results ?? null;
 }
