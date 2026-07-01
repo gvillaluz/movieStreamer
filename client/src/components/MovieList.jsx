@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { loadMovies, loadSeries } from "../services/serviceAPI"
 import MovieCard from "./MovieCard";
-import './Movielist.css';
+import './MovieList.css';
 import { SearchContext } from "../context/searchContext";
 import { useLocation } from "react-router-dom";
 
