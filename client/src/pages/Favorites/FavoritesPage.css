@@ -1,3 +1,7 @@
-.movie-list {
-    margin-top: 10px;
+.favorites-page {
+    padding-top: 1rem;
+}
+
+.favorites-page .movie-list {
+    margin-top: 1.5rem;
 }

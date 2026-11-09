@@ -1,0 +1,30 @@
+.scroll-row { position: relative; min-width: 0; }
+
+.scroll-row-btn {
+  position: absolute;
+  top: calc(50% - 2rem);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: #fff;
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  background: rgba(14, 10, 20, .72);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .16);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0;
+  transition: opacity .2s, transform .2s, background .2s;
+}
+.scroll-row-btn.prev { left: -.6rem; }
+.scroll-row-btn.next { right: -.6rem; }
+.scroll-row:hover .scroll-row-btn:not(:disabled),
+.scroll-row:focus-within .scroll-row-btn:not(:disabled) { opacity: 1; }
+.scroll-row-btn:not(:disabled):hover { background: rgba(229, 9, 20, .75); transform: scale(1.08); }
+.scroll-row-btn:disabled { opacity: 0; pointer-events: none; }
+
+/* Touch devices and phones scroll by swipe */
+@media (hover: none), (max-width: 700px) { .scroll-row-btn { display: none; } }

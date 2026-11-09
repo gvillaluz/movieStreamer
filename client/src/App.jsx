@@ -6,7 +6,6 @@ import TvSeriesPage from './pages/Series/TvSeriesPage'
 import MoviePage from './pages/Movie/MoviePage'
 import FavoritesPage from './pages/Favorites/FavoritesPage'
 import { SearchContext, SearchProvider } from './context/searchContext'
-import { useContext } from 'react'
 import DescriptionPage from './pages/Description/DescriptionPage'
 import WatchPage from './pages/Watch/WatchPage'
 

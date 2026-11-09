@@ -1,8 +1,15 @@
 import MovieList from "../../components/MovieList";
+import PageBackButton from "../../components/PageBackButton";
 
 const MoviePage = () => {
     return (
-        <MovieList type={"movies"} />
+        <main className="page-content">
+            <div className="page-heading">
+                <PageBackButton />
+                <h1>Movies</h1>
+            </div>
+            <MovieList type={"movies"} />
+        </main>
     )
 }
 

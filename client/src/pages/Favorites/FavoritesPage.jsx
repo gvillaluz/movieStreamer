@@ -1,28 +1,40 @@
-import { useContext, useState } from "react";
-import EmptyList from "../../components/EmptyList";
+import { useContext } from "react";
+import { FaRegHeart } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import EmptyState from "../../components/EmptyState";
 import { SearchContext } from "../../context/searchContext";
 import MovieCard from "../../components/MovieCard";
 import '../Favorites/FavoritesPage.css';
+import PageBackButton from "../../components/PageBackButton";
 
 const FavoritesPage = () => {
     const { favorites } = useContext(SearchContext);
+    const navigate = useNavigate();
+    const items = favorites.filter((fav) => fav.poster_path);
 
     return (
-        (
-            favorites.length === 0 ? (
-                <EmptyList page={"Favorite Movies or Series"} message={"Browse movies or series, add them to your favorites."} />
+        <main className="page-content favorites-page">
+            <div className="page-heading">
+                <PageBackButton />
+                <div>
+                    <span className="eyebrow">Your collection</span>
+                    <h1>Favorites</h1>
+                </div>
+            </div>
+            {items.length === 0 ? (
+                <EmptyState
+                    icon={<FaRegHeart />}
+                    title="No favorites yet"
+                    message="Tap the heart on any movie or series to save it here."
+                    action={{ label: "Browse movies", onClick: () => navigate("/movie") }}
+                />
             ) : (
                 <div className="movie-list">
-                    {favorites.map((fav, index) => (
-                        fav.poster_path && <MovieCard key={fav.id + '-' + index} content={fav} />
-                     ))}
+                    {items.map((fav, index) => <MovieCard key={fav.id + '-' + index} content={fav} />)}
                 </div>
-            )
-        )
-        
-
-        
-    )
+            )}
+        </main>
+    );
 }
 
 export default FavoritesPage;

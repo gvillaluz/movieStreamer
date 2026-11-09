@@ -1,10 +1,2 @@
-.watch-related-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 10px;
-    row-gap: 10px;
-}
-
-h3 {
-    margin-top: 30px;
-}
+/* List layout lives in components/MovieList.css; only the heading spacing is local. */
+.detail-container h3 { margin: 1.5rem 0 .75rem; }

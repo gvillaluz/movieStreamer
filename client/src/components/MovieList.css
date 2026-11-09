@@ -1,75 +1,54 @@
-.movie-list {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-    margin: 0 auto;
-    justify-content: center;
-    align-items: start;
+/*
+ * Shared list layout
+ * One fluid grid for every poster list (movies, series, search, favorites, related).
+ * Columns are derived from --card-min, so there are no per-page column ladders.
+ */
+.movie-list,
+.related-list,
+.watch-related-list {
+  --card-min: 168px;
+  --list-gap: clamp(.75rem, 1.6vw, 1.5rem);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-min), 1fr));
+  gap: var(--list-gap);
+  align-content: start;
+  width: 100%;
+  min-width: 0;
 }
 
-.loading {
-    text-align: center;
-    height: 100vh;
-    width: 100%;
-    position: absolute;
+/* Denser, so related titles read as a secondary list */
+.related-list,
+.watch-related-list { --card-min: 148px; --list-gap: clamp(.6rem, 1.2vw, 1rem); }
+
+@media (min-width: 1500px) {
+  .movie-list { --card-min: 196px; }
+  .related-list { --card-min: 168px; }
 }
 
-.no-content {
-    text-align: center;
-    margin-top: 150px;
+@media (max-width: 700px) {
+  .movie-list { --card-min: 144px; }
+  .related-list,
+  .watch-related-list { --card-min: 124px; }
 }
 
-.main-content {
-    text-align: left;
-    width: 100%;
+/* Never let a single card stretch across a nearly empty row */
+.movie-list > .movie-card,
+.related-list > .movie-card,
+.watch-related-list > .movie-card { width: 100%; max-width: 280px; justify-self: center; }
+
+@media (max-width: 480px) {
+  .movie-details { padding: .6rem; }
+  .movie-details h4 { font-size: .8rem; }
 }
 
-.main-content h1 {
-    font-weight: 400;
-    font-size: 2.3em;
-    margin-bottom: 50px;
+/* Page body + list heading */
+.main-content { width: 100%; padding-top: .25rem; text-align: left; }
+.list-heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .4rem 1rem;
+  margin: 0 0 1.25rem;
 }
-
-@media (max-width: 1024px) {
-    .main-content h1 {
-        font-size: 1.8em;
-        margin-bottom: 20px;
-    }
-
-    .movie-list {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    }
-}
-
-@media (max-width: 768px) {
-    .main-content h1 {
-        font-size: 1.7em;
-        margin-bottom: 15px;
-    }
-
-    .movie-list {
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    }
-}
-
-@media (max-width: 576px) {
-    .main-content h1 {
-        font-size: 1.6em;
-        margin-bottom: 15px;
-    }
-    
-    .movie-list {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    }
-}
-
-@media (max-width: 375px) {
-    .main-content h1 {
-        font-size: 1.5em;
-    }
-
-    .movie-list {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    }
-}
+.list-heading h2 { margin: 0; font-size: clamp(1.2rem, 2.6vw, 1.7rem); letter-spacing: -.05em; }
+.list-count { color: var(--text-muted); font-size: .85rem; }

@@ -3,63 +3,92 @@ import axios from "axios";
 const API_KEY = "2bf23a317267ca670ddf722b39a5dd69";
 const API_URL = "https://api.themoviedb.org/3";
 
-const API_ORG_URL = "https://archive.org/advancedsearch.php";
+const request = async (path, params = {}) => {
+    const response = await axios.get(`${API_URL}${path}`, {
+        params: {
+            api_key: API_KEY,
+            language: "en-US",
+            ...params,
+        },
+    });
 
-const embedUrl = `https://vidsrc.me/embed/movie`;
+    return response.data;
+};
 
 export const loadMovies = async () => {
-    let movies = [];
     try {
-        for (let i = 1; i <= 5; i++) {
-            const response = await axios.get(`${API_URL}/movie/popular?api_key=${API_KEY}&page=${i}`);
-            movies.push(...response.data.results);
-        }
-    } catch (err) {
-        console.log(err);
-        return null;
+        const pages = await Promise.all([
+            request("/movie/popular", { page: 1 }),
+            request("/movie/popular", { page: 2 }),
+        ]);
+        return pages.flatMap((page) => page.results);
+    } catch {
+        throw new Error("Unable to load movies right now.");
     }
-
-    return movies;
-}
+};
 
 export const loadSeries = async () => {
-    let series = [];
     try {
-        for (let i = 1; i <= 5; i++) {
-            const response = await axios.get(`${API_URL}/tv/popular?api_key=${API_KEY}&page=${i}`);
-            series.push(...response.data.results);
-        }
-        return series;
-    } catch (err) {
-        console.log(err);
-        return null;
+        const pages = await Promise.all([
+            request("/tv/popular", { page: 1 }),
+            request("/tv/popular", { page: 2 }),
+        ]);
+        return pages.flatMap((page) => page.results);
+    } catch {
+        throw new Error("Unable to load series right now.");
     }
-}
+};
 
 export const search = async (searchQuery, pathname) => {
-    if (pathname === "/" && pathname !== "/movie" && pathname !== "series") {
-        pathname = "/multi";
-    } else if (pathname === "/series") {
-        pathname = "/tv";
-    }
-    
+    const endpoint = pathname === "/movie"
+        ? "/search/movie"
+        : pathname === "/series"
+            ? "/search/tv"
+            : "/search/multi";
+
     try {
-        const response = await axios.get(`${API_URL}/search${pathname}?api_key=${API_KEY}&query=${encodeURIComponent(searchQuery)}`);
-        return response.data.results;
-    } catch (err) {
-        alert(err);
-        return null;
-    } 
-}
+        const data = await request(endpoint, {
+            query: searchQuery,
+            include_adult: false,
+            page: 1,
+        });
+        return data.results.filter((item) => item.media_type !== "person");
+    } catch {
+        throw new Error("Search is unavailable right now.");
+    }
+};
+
+export const loadHomeContent = async () => {
+    try {
+        const [trending, newMovies, newSeries, popularMovies, popularSeries] = await Promise.all([
+            request("/trending/all/week"),
+            request("/movie/now_playing", { page: 1 }),
+            request("/tv/on_the_air", { page: 1 }),
+            request("/movie/popular", { page: 1 }),
+            request("/tv/popular", { page: 1 }),
+        ]);
+
+        return {
+            trending: trending.results.filter((item) => item.media_type !== "person"),
+            newMovies: newMovies.results,
+            newSeries: newSeries.results,
+            popularMovies: popularMovies.results,
+            popularSeries: popularSeries.results,
+        };
+    } catch {
+        throw new Error("Unable to load the home feed right now.");
+    }
+};
 
 export const searchById = async (id, category) => {
     if (!id) return null;
     
     try {
-        const response = await axios.get(`${API_URL}/${category}/${id}?api_key=${API_KEY}`);
-        const video = await axios.get(`${API_URL}/${category}/${id}/videos?api_key=${API_KEY}`);
-        const trailer = video.data.results.find(v => v.type === "Trailer" && v.site === "YouTube");
-        const data = response.data;
+        const [data, video] = await Promise.all([
+            request(`/${category}/${id}`),
+            request(`/${category}/${id}/videos`),
+        ]);
+        const trailer = video.results.find(v => v.type === "Trailer" && v.site === "YouTube");
 
         const value = {
             data,
@@ -67,36 +96,28 @@ export const searchById = async (id, category) => {
         }
         
         return value;
-    } catch (err) {
-        console.log(err);
-        return null;
+    } catch {
+        throw new Error("Unable to load this title right now.");
     }
 }
 
 export const getSimilarContent = async (category, id) =>  {
-    const similar = await axios.get(`${API_URL}/${category}/${id}/recommendations?api_key=${API_KEY}`);
-
-    return similar.data.results ?? null;
+    const similar = await request(`/${category}/${id}/recommendations`);
+    return similar.results ?? null;
 }
 
 export const getVideoById = async (id, category) => {
     try {
-        const data = await axios.get(`${API_URL}/${category}/${id}?api_key=${API_KEY}`);
-
-        return data.data;
-    } catch (e) {
-        console.log(e);
-        return null;
+        return await request(`/${category}/${id}`);
+    } catch {
+        throw new Error("Unable to load video details right now.");
     }
 }
 
 export const getEpisodesBySeason = async (id, season) => {
     try {
-        const data = await axios.get(`${API_URL}/tv/${id}/season/${season}?api_key=${API_KEY}`);
-
-        return data.data;
-    } catch (e) {
-        console.log(e);
-        return null;
+        return await request(`/tv/${id}/season/${season}`);
+    } catch {
+        throw new Error("Unable to load episodes right now.");
     }
 }

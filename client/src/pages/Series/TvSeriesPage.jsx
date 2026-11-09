@@ -1,10 +1,15 @@
-import { useState } from "react";
-import EmptyList from "../../components/EmptyList";
 import MovieList from "../../components/MovieList";
+import PageBackButton from "../../components/PageBackButton";
 
 const TvSeriesPage = () => {
     return (
-        <MovieList type={"series"} />
+        <main className="page-content">
+            <div className="page-heading">
+                <PageBackButton />
+                <h1>TV Series</h1>
+            </div>
+            <MovieList type={"series"} />
+        </main>
     )
 }
 

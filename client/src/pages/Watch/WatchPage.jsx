@@ -5,6 +5,10 @@ import { getEpisodesBySeason, getVideoById } from '../../services/serviceAPI';
 import { convertRuntime } from '../../utils/DurationUtils';
 import RelatedContent from '../Description/components/RelatedContent';
 import WatchPageRelated from './components/WatchPageRelated';
+import { FaExclamationTriangle, FaFilm } from 'react-icons/fa';
+import LoadingState from '../../components/LoadingState';
+import EmptyState from '../../components/EmptyState';
+import { SkeletonGrid } from '../../components/Skeletons';
 
 const WatchPage = () => {
     const { id, category } = useParams();
@@ -15,6 +19,8 @@ const WatchPage = () => {
     const [season, setSeason] = useState(1);
     const [genres, setGenres] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState("");
+    const [reloadKey, setReloadKey] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
     const [isOpenOverview, setIsOpenOverview] = useState(false);
 
@@ -22,7 +28,16 @@ const WatchPage = () => {
 
     useEffect(() => {
         const loadMovieDetail = async () => {
-            const data = await getVideoById(id, category);
+            setLoading(true);
+            setLoadError("");
+            let data;
+            try {
+                data = await getVideoById(id, category);
+            } catch (err) {
+                setLoadError(err.message || "Unable to load video details right now.");
+                setLoading(false);
+                return;
+            }
 
             setDetail(data);
             setGenres(data.genres);
@@ -41,24 +56,29 @@ const WatchPage = () => {
         }
 
         loadMovieDetail();
-    }, [id, category]);
+    }, [id, category, reloadKey]);
 
     useEffect(() => {
         const getEpisodes = async () => {
             if (isSeries) {
-                const episodesResult = await getEpisodesBySeason(id, season);
-                const today = new Date();
+                setEpisodes(null);
+                try {
+                    const episodesResult = await getEpisodesBySeason(id, season);
+                    const today = new Date();
 
-                const episodeList = episodesResult.episodes
-                    .filter(ep => 
-                        ep.air_date && 
-                        new Date(ep.air_date) <= today
-                    ).map((ep, index) => ({
-                        ...ep,
-                        vidsrcEpisode: index + 1
-                    }));
+                    const episodeList = (episodesResult?.episodes ?? [])
+                        .filter(ep =>
+                            ep.air_date &&
+                            new Date(ep.air_date) <= today
+                        ).map((ep, index) => ({
+                            ...ep,
+                            vidsrcEpisode: index + 1
+                        }));
 
-                setEpisodes(episodeList);
+                    setEpisodes(episodeList);
+                } catch {
+                    setEpisodes([]);
+                }
             }
         }
 
@@ -83,17 +103,6 @@ const WatchPage = () => {
         }));
     }
 
-    const vidsrcMovie = `https://vidsrc.me/embed/movie/${id}`;
-    const vidsrcSeries = `https://vidsrc.me/embed/tv/${id}/${season}/${episode}`;
-
-    const vidsrcV2Movie = `https://vidsrc.to/embed/movie/${id}`;
-    const vidsrcV2Series = `https://vidsrc.to/embed/tv/${id}/${season}/${episode}`;
-
-    const embedMovie = `https://www.2embed.cc/embed/${id}`;
-    const embedSeries = `https://www.2embed.cc/embedtv/${id}/${season}/${episode}`;
-
-    const animeSeries = `https://vidsrc.cc/v2/embed/anime/tmdb${id}/${episode}/sub`;
-
     const series = `https://vsembed.ru/embed/tv/${id}/${season}/${episode}?ds_lang=en`;
     const movie = `https://vsembed.ru/embed/movie/${id}`;
 
@@ -107,9 +116,9 @@ const WatchPage = () => {
             <div className='watch-page-header'>
                 <button 
                     className='back-btn mobile'
-                    onClick={() => navigate(`/${isSeries ? 'series' : 'movies'}/${id}/${isSeries ? detail.original_name : detail.title}`)}
+                    onClick={() => navigate(-1)}
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left text-foreground" data-fg-d3bl8="0.8:1.19812:/src/app/App.tsx:118:13:3879:53:e:ChevronLeft::::::O1c" data-fgid-d3bl8=":r4:"><path d="m15 18-6-6 6-6"></path></svg>
+                    ←
                 </button>
                 <h2 className='title'>
                     NOW PLAYING
@@ -126,15 +135,24 @@ const WatchPage = () => {
                     allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
                     frameBorder={"0"}
                 />
-                {loading ? 
-                    <div>
-                        <div className='loader'></div>
+                {loading ?
+                    <LoadingState label="Loading player details..." />
+                    : loadError ?
+                    <div className='detail-container'>
+                        <EmptyState
+                            compact
+                            tone="error"
+                            icon={<FaExclamationTriangle />}
+                            title="Couldn't load details"
+                            message={loadError}
+                            action={{ label: "Try again", onClick: () => setReloadKey((k) => k + 1) }}
+                        />
                     </div>
                     :
                     <div className='detail-container'>
                         <button 
                             className='back-btn desktop'
-                            onClick={() => navigate(`/${isSeries ? 'series' : 'movies'}/${id}/${isSeries ? detail.original_name : detail.title}`)}
+                            onClick={() => navigate(-1)}
                         >
                             ← Back
                         </button>
@@ -182,6 +200,17 @@ const WatchPage = () => {
                                     )}
                                 </div>
                                 <div className='episode-container'>
+                                    {episodes === null && (
+                                        <SkeletonGrid className="episode-skeletons" count={4} label="Loading episodes..." />
+                                    )}
+                                    {episodes?.length === 0 && (
+                                        <EmptyState
+                                            compact
+                                            icon={<FaFilm />}
+                                            title="No episodes available"
+                                            message="No aired episodes were found for this season."
+                                        />
+                                    )}
                                     {episodes?.map(ep => (
                                         <div 
                                             key={ep.episode_number}

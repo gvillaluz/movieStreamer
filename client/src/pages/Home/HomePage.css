@@ -1,0 +1,221 @@
+.home-page {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  overflow: clip;
+}
+
+/*
+ * Scroll-blended backdrop
+ * ::before = the hero image, blurred + dimmed progressively as the page scrolls
+ * ::after  = static scrim (text legibility + vignette), never has an edge to seam against
+ * Both are fixed to the viewport, so there is no per-section boundary to see.
+ */
+.home-page {
+  --backdrop-range: 90vh;     /* scroll distance over which the blend completes */
+  --backdrop-blur: 22px;
+  --backdrop-dim: .42;
+}
+
+.home-page::before {
+  content: "";
+  position: fixed;
+  inset: -3rem;               /* overscan so blurred edges never reveal the page bg */
+  z-index: -2;
+  pointer-events: none;
+  background: var(--hero-image) center / cover no-repeat;
+  will-change: filter, transform;
+  animation: backdrop-blend linear both;
+  animation-timeline: scroll(root block);
+  animation-range: 0 var(--backdrop-range);
+}
+
+.home-page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(8,11,22,.42), transparent 55%),
+    linear-gradient(180deg, rgba(19,5,12,.18) 0%, rgba(19,5,12,.38) 45%, rgba(8,11,22,.82) 100%);
+}
+
+@keyframes backdrop-blend {
+  from { filter: blur(0) brightness(1) saturate(1); transform: scale(1); }
+  to   { filter: blur(var(--backdrop-blur)) brightness(var(--backdrop-dim)) saturate(.8); transform: scale(1.06); }
+}
+
+.home-page.no-hero .home-content { padding-top: 2rem; }
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  min-height: 100svh;
+  overflow: hidden;
+  margin-bottom: 0;
+  padding: clamp(1.5rem, 5vw, 4rem) clamp(1rem, 6vw, 6rem) clamp(7rem, 16vh, 10rem);
+  background: transparent;
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 3;
+  max-width: 680px;
+  text-align: left;
+  will-change: transform, opacity;
+  animation: hero-copy-scroll linear both;
+  animation-timeline: scroll(root block);
+  animation-range: 0 70vh;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: .8rem;
+  color: var(--accent);
+  font-size: .73rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  max-width: 560px;
+  margin: 0 0 1rem;
+  font-size: clamp(2.8rem, 7.5vw, 6.4rem);
+  line-height: .96;
+  letter-spacing: -.075em;
+  text-wrap: balance;
+}
+
+.hero p {
+  max-width: 580px;
+  margin: 0 0 1.5rem;
+  color: #f4e7e9;
+  font-size: clamp(.95rem, 1.5vw, 1.1rem);
+  line-height: 1.7;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  flex-wrap: wrap;
+}
+
+.rating-pill {
+  padding: .68rem .9rem;
+  color: #ffe8e8;
+  border: 1px solid rgba(255,190,190,.2);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255,255,255,.14), rgba(35,5,14,.54));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16);
+}
+
+.home-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: clamp(3.5rem, 6vw, 5.5rem);
+  margin-top: 0;
+  padding: clamp(3rem, 7vw, 5rem) clamp(1rem, 4vw, 4rem) 5rem;
+}
+
+.home-section,
+.home-content > .section-heading {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.35rem;
+  text-align: left;
+}
+.section-heading h2 { margin: 0; font-size: clamp(1.45rem, 3vw, 2.15rem); letter-spacing: -.06em; text-wrap: balance; }
+.section-heading .eyebrow { margin-bottom: .35rem; }
+.text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  padding: .55rem .1rem;
+  color: var(--text-soft);
+  border: 0;
+  background: transparent;
+  transition: color .2s, gap .2s;
+}
+.text-button:hover { gap: .8rem; color: #fff; }
+.home-page .home-grid {
+  display: flex;
+  flex-wrap: nowrap !important;
+  grid-template-columns: none;
+  gap: 1.15rem;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: .35rem .2rem 1.15rem;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.home-page .home-grid .movie-card {
+  flex: 0 0 clamp(150px, 14vw, 210px);
+  width: clamp(150px, 14vw, 210px);
+  min-width: clamp(150px, 14vw, 210px);
+  scroll-snap-align: start;
+}
+.home-grid::-webkit-scrollbar { display: none; }
+
+@keyframes hero-copy-scroll {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(-38vw, -1rem, 0);
+  }
+}
+
+@supports not (animation-timeline: scroll()) {
+  .hero-copy { animation: none; }
+  /* No scroll-driven animation: keep a static, softly dimmed backdrop */
+  .home-page::before { animation: none; filter: brightness(.7); }
+}
+
+@media (max-width: 1100px) {
+  .home-page .home-grid .movie-card { flex-basis: 180px; min-width: 180px; width: 180px; }
+}
+
+@media (max-width: 700px) {
+  .hero { background-position: 63% center; }
+  .hero h1 { font-size: clamp(2.5rem, 12vw, 4rem); }
+  .home-content { gap: 3rem; margin-top: 0; padding-top: 3rem; }
+  .home-page .home-grid .movie-card { flex-basis: 160px; min-width: 160px; width: 160px; }
+}
+
+@media (max-width: 480px) {
+  .hero { padding: 1.25rem 1rem 5.5rem; }
+  .hero p { line-height: 1.5; }
+  .home-page .home-grid .movie-card { flex-basis: 145px; min-width: 145px; width: 145px; }
+  .section-heading { align-items: start; }
+  .section-heading h2 { font-size: 1.4rem; }
+  .text-button { font-size: .8rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-copy { animation: none; }
+  .home-page::before { animation: none; filter: brightness(.7); }
+}

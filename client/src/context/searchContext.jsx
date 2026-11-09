@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { search, loadMovies, loadSeries } from "../services/serviceAPI";
 
 export const SearchContext = createContext();
@@ -11,6 +11,8 @@ export function SearchProvider({ children }) {
     const [favorites, setFavorites] = useState([]);
     const [isDescriptionPage, setIsDescriptionPage] = useState(false);
     const [searchResults, setSearchResults] = useState("");
+    const [isSearching, setIsSearching] = useState(false);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         const isDescription = !["/movie", "/series", "/favorites", "/"].includes(location.pathname);
@@ -37,17 +39,32 @@ export function SearchProvider({ children }) {
 
     const handleSearch = async (e) => {
         e.preventDefault();
-        if (!searchQuery.trim()) return;
-        
-        const data = await search(searchQuery, location.pathname);
-        setContent(data);
-        setSearchResults(searchQuery);
+        const query = searchQuery.trim();
+        if (!query) return;
+
+        setIsSearching(true);
+        setError("");
+        try {
+            const data = await search(query, location.pathname);
+            setContent(data);
+            setSearchResults(query);
+        } catch (err) {
+            setError(err.message);
+            setContent([]);
+        } finally {
+            setIsSearching(false);
+        }
     }
 
     const response = async (type) => {
         setContent([]);
-        const data = type == "series" ? await loadSeries() : await loadMovies();
-        setContent(data);
+        setError("");
+        try {
+            const data = type === "series" ? await loadSeries() : await loadMovies();
+            setContent(data);
+        } catch (err) {
+            setError(err.message);
+        }
     }
 
     const value = {
@@ -61,7 +78,10 @@ export function SearchProvider({ children }) {
         isDescriptionPage,
         setIsDescriptionPage,
         searchResults,
-        setSearchResults
+        setSearchResults,
+        isSearching,
+        error,
+        setError
     }
 
     return  (

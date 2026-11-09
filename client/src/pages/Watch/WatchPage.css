@@ -16,15 +16,18 @@
 
 .main-watch-container {
     display: flex;
-    height: 100vh;
-    margin-left: -2rem;
-    margin-bottom: -50px;
-    margin-right: -2rem;
+    min-height: calc(100vh - 82px);
+    width: 100vw;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: -4rem;
 }
 
 .main-watch-container .video {
     flex: 3;
-    height: 100vh;
+    height: calc(100vh - 82px);
+    min-width: 0;
+    background: #050509;
 }
 
 .main-watch-container .detail-container {
@@ -34,10 +37,16 @@
     flex-direction: column;
     overflow-y: auto;
     scrollbar-width: thin;
+    background: linear-gradient(145deg, rgba(65, 27, 43, .7), rgba(17, 10, 22, .82));
+    border-left: 1px solid var(--glass-border);
+    box-shadow: inset 1px 0 0 rgba(255,255,255,.06), inset 0 1px 0 rgba(255,255,255,.12);
+    backdrop-filter: blur(24px) saturate(130%);
+    -webkit-backdrop-filter: blur(24px) saturate(130%);
 }
 
 .main-watch-container .detail-container p {
-    font-size: 18px;
+    font-size: 16px;
+    color: var(--text-soft);
 }
 
 .season-container {
@@ -65,7 +74,11 @@
   max-width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  height: 300px;
+  height: min(44vh, 420px);
+  padding: .35rem;
+  border: 1px solid rgba(255,190,190,.12);
+  border-radius: 16px;
+  background: rgba(0,0,0,.12);
   text-align: left;
   margin-top: 10px;
 }
@@ -87,17 +100,19 @@
   gap: 10px;
   height: auto;
   align-items: flex-start;
-  border-radius: 6px;
+  border: 1px solid transparent;
+  border-radius: 12px;
   cursor: pointer;
   transition: background 0.2s ease;
 }
 
 .series:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, rgba(255,255,255,.1), rgba(229,9,20,.12));
 }
 
 .series.current {
-  background: rgba(255, 0, 0, 0.15);
+  background: linear-gradient(135deg, rgba(229,9,20,.3), rgba(255,107,107,.1));
+  border: 1px solid rgba(255,107,107,.28);
 }
 
 .series .episode-img {
@@ -157,7 +172,9 @@
 .badges-container .badges {
   padding: 5px 10px;
   border-radius: 50px;
-  border: 1px grey solid;
+  color: #ffe8e8;
+  border: 1px solid rgba(255,190,190,.24);
+  background: rgba(229,9,20,.12);
   font-size: 14px;
 }
 
@@ -185,16 +202,12 @@
 }
 
 .back-btn {
-  background: transparent;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  padding: 8px 0;
   margin-bottom: 10px;
-  opacity: 0.7;
   word-spacing: 5px;
-  width: 70px;
+}
+
+.back-btn.desktop {
+  align-self: flex-start;
 }
 
 .back-btn.mobile {
@@ -202,7 +215,7 @@
   margin-bottom: 0;
   width: 40px;
   height: 40px;
-  background-color: rgba(121, 121, 121, 0.568);
+  background: linear-gradient(135deg, rgba(255,255,255,.14), rgba(229,9,20,.26));
   border-radius: 50px;
   position: absolute;
   top: 15px;
@@ -218,11 +231,13 @@
 }
 
 .selected {
-  background: #58585867;
+  border: 1px solid var(--glass-border);
+  background: linear-gradient(135deg, rgba(255,255,255,.1), rgba(229,9,20,.12));
   color: white;
   padding: 10px;
   border-radius: 6px;
   cursor: pointer;
+  font-weight: 700;
 }
 
 .options {
@@ -230,7 +245,9 @@
   top: 100%;
   left: 0;
   width: 100%;
-  background: #1a1a1a;
+  border: 1px solid var(--glass-border);
+  background: rgba(31, 10, 20, .94);
+  backdrop-filter: blur(20px);
   border-radius: 6px;
   z-index: 10;
   max-height: 200px;
@@ -241,10 +258,11 @@
   padding: 10px;
   cursor: pointer;
   color: white;
+  font-weight: 500;
 }
 
 .option:hover {
-  background: #333;
+  background: rgba(229,9,20,.18);
 }
 
 .option.active {
@@ -296,7 +314,8 @@
 .overview-toggle {
   background: none;
   border: none;
-  color: rgba(255, 0, 0, 0.719);
+  color: var(--accent);
+  font-weight: 700;
   font-size: 13px;
   cursor: pointer;
   padding: 6px 0;
@@ -324,6 +343,7 @@
   .main-watch-container {
     flex-direction: column;
     margin: 0;
+    transform: none; /* desktop centering uses margin-left + translateX; reset both together */
     height: auto;
     width: 100%;
   }
@@ -337,12 +357,16 @@
 
   .main-watch-container .detail-container {
     height: auto;
-    padding: 0;
+    padding: 1rem;
     margin-top: 20px;
   }
 
   .movie {
     display: none;
+  }
+
+  .episode-container {
+    height: min(52vh, 480px);
   }
 }
 

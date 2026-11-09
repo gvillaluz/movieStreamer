@@ -1,56 +1,77 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { FaExclamationTriangle } from "react-icons/fa";
 import { searchById } from "../../services/serviceAPI";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import Details from './components/Details'
 import Trailer from "./components/Trailer";
 import './DescriptionPage.css'
-import MovieList from "../../components/MovieList";
 import RelatedContent from "./components/RelatedContent";
+import PageBackButton from "../../components/PageBackButton";
+import EmptyState from "../../components/EmptyState";
+import { DetailSkeleton } from "../../components/Skeletons";
 
 const DescriptionPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { id } = useParams();
-    const [content, setContent] = useState({});
-    const [loading, setLoading] = useState(true);
+    const [content, setContent] = useState(null);
+    const [error, setError] = useState("");
     const [category, setCateogry] = useState("");
 
-    useEffect(() => {
-        const getContent = async () => {
-            const category = location.pathname.includes("movie") ? "movie" :
-                 location.pathname.includes("series") ? "tv" : "";
+    const load = useCallback(async () => {
+        const nextCategory = location.pathname.includes("movie") ? "movie" :
+            location.pathname.includes("series") ? "tv" : "";
 
-            setCateogry(category);
+        setCateogry(nextCategory);
+        setError("");
+        setContent(null);
 
-            const data = await searchById(id, category);
+        try {
+            const data = await searchById(id, nextCategory);
+            if (!data?.data) throw new Error("We couldn't find that title.");
             setContent(data);
-            setLoading(false);
+        } catch (err) {
+            setError(err.message || "Unable to load title details right now.");
         }
-
-        getContent();
     }, [id, location.pathname]);
+
+    useEffect(() => { load(); }, [load]);
 
     const handleWatchNow = () => {
         navigate(`/watch/${category}/${content.data.id}`);
     }
 
+    if (error) {
+        return (
+            <main className="page-content">
+                <PageBackButton />
+                <EmptyState
+                    tone="error"
+                    icon={<FaExclamationTriangle />}
+                    title="Couldn't load this title"
+                    message={error}
+                    action={{ label: "Try again", onClick: load }}
+                />
+            </main>
+        );
+    }
+
+    if (!content) {
+        return <DetailSkeleton label="Loading title details..." />;
+    }
+
     return (
-        (!loading ? (
+        <main className="description-page page-content">
+            <PageBackButton />
             <div className="description">
-                <Details content={content.data} handleWatchNow={handleWatchNow}/>
+                <Details content={content.data} handleWatchNow={handleWatchNow} />
                 {content.trailer && <Trailer video={content.trailer.key} />}
                 <div className="description-section related">
                     <RelatedContent relatedContent={content.data.genres} category={category} id={content.data.id} />
                 </div>
             </div>
-        ) : (
-            <div className="loading">
-                <div className="loader"></div>
-                <h3>Loading.....</h3>
-            </div>
-
-        ))
-    )
+        </main>
+    );
 }
 
 export default DescriptionPage;
