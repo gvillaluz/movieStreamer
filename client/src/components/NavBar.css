@@ -4,7 +4,7 @@
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: clamp(.75rem, 2vw, 2rem);
   min-height: 78px;
   margin-bottom: .5rem;
   padding: .8rem clamp(1rem, 4vw, 4rem);
@@ -14,7 +14,7 @@
 .navbar h2 img { width: 30px; height: 30px; border-radius: 9px; object-fit: cover; box-shadow: 0 0 20px rgba(229,9,20,.25); }
 .navbar-right { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; width: 100%; }
 .navbar-tabs ul { display: flex; gap: .35rem; padding: 0; margin: 0; list-style: none; }
-.navbar-tabs .link { color: var(--text-muted); padding: .65rem .85rem; border-radius: 10px; transition: color .2s, background .2s, transform .2s; }
+.navbar-tabs .link { white-space: nowrap; color: var(--text-muted); padding: .65rem .85rem; border-radius: 10px; transition: color .2s, background .2s, transform .2s; }
 .navbar-tabs .link:hover, .navbar-tabs .link.active { color: #fff; background: linear-gradient(135deg, rgba(229,9,20,.25), rgba(255,255,255,.06)); box-shadow: inset 0 1px 0 rgba(255,255,255,.12); }
 .navbar-tabs .link:hover { transform: translateY(-1px); }
 .navbar-tabs {
@@ -25,16 +25,15 @@
   box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 10px 30px rgba(0,0,0,.16);
 }
 .hamburger { display: none; color: #fff; background: transparent; border: 0; font-size: 1.5rem; }
-@media (max-width: 920px) {
-  .navbar { flex-wrap: wrap; }
-  .navbar-right { gap: .8rem; }
-  .navbar-tabs ul { gap: 0; }
-}
-@media (max-width: 700px) {
-  .navbar { min-height: 72px; }
-  .hamburger { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 12px; }
-  .navbar-right { flex-wrap: wrap; }
-  .navbar-tabs { display: none; position: absolute; top: 72px; left: 1rem; right: 1rem; padding: .5rem; border: 1px solid var(--glass-border); border-radius: 16px; background: linear-gradient(145deg, rgba(76, 25, 45, .98), rgba(16, 9, 20, .98)); box-shadow: 0 20px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.16); }
+/* Compact navbar: tabs fold into the burger menu and search collapses to an icon */
+@media (max-width: 1024px) {
+  /* One row: title on the left, search icon + burger on the right */
+  .navbar { flex-wrap: nowrap; gap: .75rem; min-height: 72px; padding-block: .6rem; }
+  .navbar h2 { min-width: 0; }
+  .navbar h2 span { overflow: hidden; text-overflow: ellipsis; }
+  .navbar-right { flex-wrap: nowrap; width: auto; margin-left: auto; gap: .25rem; }
+  .hamburger { order: 2; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 12px; }
+  .navbar-tabs { display: none; position: absolute; top: 72px; left: clamp(1rem, 4vw, 4rem); right: clamp(1rem, 4vw, 4rem); padding: .5rem; border: 1px solid var(--glass-border); border-radius: 16px; background: linear-gradient(145deg, rgb(54, 20, 34), rgb(16, 9, 20)); box-shadow: 0 20px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.16); }
   .navbar-tabs.open { display: block; animation: menu-in .2s ease-out; }
   .navbar-tabs ul { flex-direction: column; }
   .navbar-tabs .link { display: block; padding: .8rem 1rem; }

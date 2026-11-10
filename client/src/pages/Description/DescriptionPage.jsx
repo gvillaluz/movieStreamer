@@ -64,7 +64,7 @@ const DescriptionPage = () => {
         <main className="description-page page-content">
             <PageBackButton />
             <div className="description">
-                <Details content={content.data} handleWatchNow={handleWatchNow} />
+                <Details content={content.data} category={category} handleWatchNow={handleWatchNow} />
                 {content.trailer && <Trailer video={content.trailer.key} />}
                 <div className="description-section related">
                     <RelatedContent relatedContent={content.data.genres} category={category} id={content.data.id} />

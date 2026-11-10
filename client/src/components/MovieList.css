@@ -26,9 +26,10 @@
 }
 
 @media (max-width: 700px) {
-  .movie-list { --card-min: 144px; }
+  /* ~3 posters per row on a phone */
+  .movie-list { --card-min: 100px; --list-gap: .65rem; }
   .related-list,
-  .watch-related-list { --card-min: 124px; }
+  .watch-related-list { --card-min: 100px; --list-gap: .65rem; }
 }
 
 /* Never let a single card stretch across a nearly empty row */
@@ -36,10 +37,7 @@
 .related-list > .movie-card,
 .watch-related-list > .movie-card { width: 100%; max-width: 280px; justify-self: center; }
 
-@media (max-width: 480px) {
-  .movie-details { padding: .6rem; }
-  .movie-details h4 { font-size: .8rem; }
-}
+
 
 /* Page body + list heading */
 .main-content { width: 100%; padding-top: .25rem; text-align: left; }

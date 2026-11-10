@@ -7,7 +7,7 @@
 
 /*
  * Scroll-blended backdrop
- * ::before = the hero image, blurred + dimmed progressively as the page scrolls
+ * .hero-backdrop = the hero image(s), blurred + dimmed progressively as the page scrolls
  * ::after  = static scrim (text legibility + vignette), never has an edge to seam against
  * Both are fixed to the viewport, so there is no per-section boundary to see.
  */
@@ -17,13 +17,11 @@
   --backdrop-dim: .42;
 }
 
-.home-page::before {
-  content: "";
+.hero-backdrop {
   position: fixed;
   inset: -3rem;               /* overscan so blurred edges never reveal the page bg */
   z-index: -2;
   pointer-events: none;
-  background: var(--hero-image) center / cover no-repeat;
   will-change: filter, transform;
   animation: backdrop-blend linear both;
   animation-timeline: scroll(root block);
@@ -41,12 +39,34 @@
     linear-gradient(180deg, rgba(19,5,12,.18) 0%, rgba(19,5,12,.38) 45%, rgba(8,11,22,.82) 100%);
 }
 
+/* One layer per trending title; the active one cross-fades in */
+.hero-backdrop-slide {
+  position: absolute;
+  inset: 0;
+  background: center / cover no-repeat;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.hero-backdrop-slide.active { opacity: 1; }
+
 @keyframes backdrop-blend {
   from { filter: blur(0) brightness(1) saturate(1); transform: scale(1); }
   to   { filter: blur(var(--backdrop-blur)) brightness(var(--backdrop-dim)) saturate(.8); transform: scale(1.06); }
 }
 
 .home-page.no-hero .home-content { padding-top: 2rem; }
+
+/* Search results: same gutters as the other list pages, with room around the grid */
+.home-search-results { padding-top: clamp(1rem, 3vw, 2rem); padding-bottom: 3rem; text-align: left; }
+.home-search-results .section-heading { margin-bottom: clamp(1.25rem, 3vw, 2rem); }
+.home-search-results .section-heading h1 {
+  margin: 0;
+  font-size: clamp(1.45rem, 3.4vw, 2.15rem);
+  letter-spacing: -.05em;
+  line-height: 1.15;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
 
 .hero {
   position: relative;
@@ -71,6 +91,33 @@
   animation-timeline: scroll(root block);
   animation-range: 0 70vh;
 }
+
+.hero-slide { animation: hero-slide-in .7s ease both; }
+@keyframes hero-slide-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+.hero-dots { display: flex; gap: .2rem; margin-top: 1.25rem; }
+.hero-dot {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.hero-dot::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.4);
+  transform: translate(-50%, -50%);
+  transition: width .3s, background .3s;
+}
+.hero-dot:hover::after { background: rgba(255,255,255,.75); }
+.hero-dot.active::after { width: 24px; background: var(--accent); }
 
 .eyebrow {
   display: block;
@@ -192,7 +239,7 @@
 @supports not (animation-timeline: scroll()) {
   .hero-copy { animation: none; }
   /* No scroll-driven animation: keep a static, softly dimmed backdrop */
-  .home-page::before { animation: none; filter: brightness(.7); }
+  .hero-backdrop { animation: none; filter: brightness(.7); }
 }
 
 @media (max-width: 1100px) {
@@ -203,19 +250,19 @@
   .hero { background-position: 63% center; }
   .hero h1 { font-size: clamp(2.5rem, 12vw, 4rem); }
   .home-content { gap: 3rem; margin-top: 0; padding-top: 3rem; }
-  .home-page .home-grid .movie-card { flex-basis: 160px; min-width: 160px; width: 160px; }
+  .home-page .home-grid .movie-card { flex-basis: 132px; min-width: 132px; width: 132px; }
 }
 
 @media (max-width: 480px) {
   .hero { padding: 1.25rem 1rem 5.5rem; }
   .hero p { line-height: 1.5; }
-  .home-page .home-grid .movie-card { flex-basis: 145px; min-width: 145px; width: 145px; }
+  .home-page .home-grid .movie-card { flex-basis: 124px; min-width: 124px; width: 124px; }
   .section-heading { align-items: start; }
   .section-heading h2 { font-size: 1.4rem; }
   .text-button { font-size: .8rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-copy { animation: none; }
-  .home-page::before { animation: none; filter: brightness(.7); }
+  .hero-copy, .hero-slide { animation: none; }
+  .hero-backdrop { animation: none; filter: brightness(.7); }
 }

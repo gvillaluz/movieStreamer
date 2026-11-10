@@ -1,2 +1,1 @@
-/* List layout lives in components/MovieList.css; only the heading spacing is local. */
-.detail-container h3 { margin: 1.5rem 0 .75rem; }
+/* List layout lives in components/MovieList.css; only the heading spacing is local (see WatchPage.css). */

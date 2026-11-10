@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { FaArrowRight, FaFilm, FaPlay, FaSearch, FaExclamationTriangle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import MovieCard from "../../components/MovieCard";
@@ -17,6 +17,10 @@ const SECTIONS = [
     { key: "popularSeries", title: "Popular series", eyebrow: "Binge-worthy", to: "/series" },
 ];
 
+const HERO_SLIDES = 6;
+const HERO_INTERVAL = 8000;
+const heroImage = (item) => item.backdrop_path || item.poster_path;
+
 const hasPoster = (content) => Boolean(content?.poster_path && (content.title || content.name));
 
 const HomePage = () => {
@@ -24,10 +28,28 @@ const HomePage = () => {
     const { contents, searchResults, isSearching } = useContext(SearchContext);
     const [feed, setFeed] = useState(null);
     const [error, setError] = useState("");
+    const [heroIndex, setHeroIndex] = useState(0);
+    const [heroPaused, setHeroPaused] = useState(false);
+
+    const heroSlides = useMemo(
+        () => (feed?.trending || []).filter((item) => heroImage(item) && (item.title || item.name)).slice(0, HERO_SLIDES),
+        [feed]
+    );
+
+    // Rotate the featured title on a timer (paused while hovered/focused or when the tab is hidden).
+    // heroIndex is a dependency so a manual dot click restarts the countdown.
+    useEffect(() => {
+        if (heroSlides.length < 2 || heroPaused) return;
+        const timer = setInterval(() => {
+            if (!document.hidden) setHeroIndex((i) => (i + 1) % heroSlides.length);
+        }, HERO_INTERVAL);
+        return () => clearInterval(timer);
+    }, [heroSlides.length, heroPaused, heroIndex]);
 
     const load = useCallback(() => {
         setError("");
         setFeed(null);
+        setHeroIndex(0);
         loadHomeContent()
             .then(setFeed)
             .catch((err) => setError(err.message || "Please check your connection and try again."));
@@ -54,7 +76,7 @@ const HomePage = () => {
     if (searchResults || isSearching) {
         const searchItems = Array.from(new Map(contents.map((content) => [content.id, content])).values()).filter(hasPoster);
         return (
-            <main className="main-content home-search-results">
+            <main className="page-content home-search-results">
                 <div className="section-heading">
                     <div>
                         <span className="eyebrow">Search library</span>
@@ -78,10 +100,9 @@ const HomePage = () => {
         );
     }
 
-    const featured = feed.trending?.find((item) => item.backdrop_path || item.poster_path);
+    const featured = heroSlides[heroIndex];
     const featuredTitle = featured?.title || featured?.name;
     const featuredType = featured?.media_type === "tv" ? "series" : "movie";
-    const featuredBackdrop = featured?.backdrop_path || featured?.poster_path;
 
     const renderSection = ({ key, title, eyebrow, to }) => {
         const items = (feed[key] || []).filter(hasPoster).slice(0, 20);
@@ -113,25 +134,55 @@ const HomePage = () => {
     };
 
     return (
-        <main
-            className={`home-page${featured ? "" : " no-hero"}`}
-            style={featured ? { "--hero-image": `url(https://image.tmdb.org/t/p/original${featuredBackdrop})` } : undefined}
-        >
+        <main className={`home-page${featured ? "" : " no-hero"}`}>
             {featured && (
-                <section className="hero">
+                <div className="hero-backdrop" aria-hidden="true">
+                    {heroSlides.map((slide, i) => (
+                        <div
+                            key={slide.id}
+                            className={`hero-backdrop-slide${i === heroIndex ? " active" : ""}`}
+                            style={{ backgroundImage: `url(https://image.tmdb.org/t/p/w1280${heroImage(slide)})` }}
+                        />
+                    ))}
+                </div>
+            )}
+            {featured && (
+                <section
+                    className="hero"
+                    onMouseEnter={() => setHeroPaused(true)}
+                    onMouseLeave={() => setHeroPaused(false)}
+                    onFocus={() => setHeroPaused(true)}
+                    onBlur={() => setHeroPaused(false)}
+                >
                     <div className="hero-copy">
-                        <span className="eyebrow">Trending this week</span>
-                        <h1>{featuredTitle}</h1>
-                        <p>{featured.overview || "Find something unforgettable to watch tonight."}</p>
-                        <div className="hero-actions">
-                            <button
-                                className="primary-button"
-                                onClick={() => navigate(`/${featuredType}/${featured.id}/${featuredTitle.replaceAll(/\s+/g, "").toLowerCase()}`)}
-                            >
-                                <FaPlay /> View details
-                            </button>
-                            <span className="rating-pill">★ {featured.vote_average?.toFixed(1) || "—"} rating</span>
+                        <div className="hero-slide" key={featured.id}>
+                            <span className="eyebrow">Trending this week</span>
+                            <h1>{featuredTitle}</h1>
+                            <p>{featured.overview || "Find something unforgettable to watch tonight."}</p>
+                            <div className="hero-actions">
+                                <button
+                                    className="primary-button"
+                                    onClick={() => navigate(`/${featuredType}/${featured.id}/${featuredTitle.replaceAll(/\s+/g, "").toLowerCase()}`)}
+                                >
+                                    <FaPlay /> View details
+                                </button>
+                                <span className="rating-pill">★ {featured.vote_average?.toFixed(1) || "—"} rating</span>
+                            </div>
                         </div>
+                        {heroSlides.length > 1 && (
+                            <div className="hero-dots" role="group" aria-label="Choose featured title">
+                                {heroSlides.map((slide, i) => (
+                                    <button
+                                        key={slide.id}
+                                        type="button"
+                                        className={`hero-dot${i === heroIndex ? " active" : ""}`}
+                                        aria-label={`Show ${slide.title || slide.name}`}
+                                        aria-current={i === heroIndex}
+                                        onClick={() => setHeroIndex(i)}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </section>
             )}

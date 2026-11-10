@@ -3,7 +3,6 @@ import './WatchPage.css';
 import { useEffect, useState } from 'react';
 import { getEpisodesBySeason, getVideoById } from '../../services/serviceAPI';
 import { convertRuntime } from '../../utils/DurationUtils';
-import RelatedContent from '../Description/components/RelatedContent';
 import WatchPageRelated from './components/WatchPageRelated';
 import { FaExclamationTriangle, FaFilm } from 'react-icons/fa';
 import LoadingState from '../../components/LoadingState';
@@ -108,37 +107,138 @@ const WatchPage = () => {
 
     const videoSourceLink = isSeries ? series : movie;
 
-    console.log('video URL:', videoSourceLink);
-    console.log('season:', season, 'episode:', episode);
+    // Go to this title's details page. history -1 is unreliable here: the embedded player
+    // adds its own history entries, so "back" would just step through its episodes.
+    const goToDetails = () => {
+        const name = (isSeries ? (detail?.name || detail?.original_name) : detail?.title) || "title";
+        const slug = name.replaceAll(/\s+/g, "").toLowerCase();
+        navigate(`/${isSeries ? "series" : "movie"}/${id}/${slug}`);
+        window.scrollTo({ top: 0 });
+    };
+
+    const info = (() => {
+        if (!detail) return null;
+        const title = isSeries ? (detail.name || detail.original_name) : detail.title;
+        const origin = Array.isArray(detail.origin_country) ? detail.origin_country.join(", ") : detail.origin_country;
+        const meta = isSeries
+            ? [
+                detail.first_air_date && `${detail.first_air_date.split('-')[0]}${detail.last_air_date ? `-${detail.last_air_date.split('-')[0]}` : ''}`,
+                detail.number_of_seasons && `${detail.number_of_seasons} Seasons`,
+                origin,
+            ]
+            : [detail.release_date, detail.runtime ? convertRuntime(detail.runtime) : null, origin];
+
+        return (
+            <div className='watch-info'>
+                <div className='title-and-ratings'>
+                    <h1>{title}</h1>
+                    {detail.vote_average > 0 && <p className='rating'>{`⭐ ${detail.vote_average.toFixed(1)}`}</p>}
+                </div>
+                <p className='sub-detail'>{meta.filter(Boolean).join(' | ')}</p>
+                {genres?.length > 0 && (
+                    <div className='badges-container'>
+                        {genres.map((genre) => (
+                            <div key={genre.id} className='badges'>{genre.name}</div>
+                        ))}
+                    </div>
+                )}
+                {detail.overview && (
+                    <>
+                        <div className={`overview-container ${isOpenOverview ? 'viewing' : ''}`}>
+                            <p className='overview'>{detail.overview}</p>
+                        </div>
+                        <button
+                            className='overview-toggle'
+                            onClick={() => setIsOpenOverview(!isOpenOverview)}
+                            aria-expanded={isOpenOverview}
+                        >
+                            {isOpenOverview ? 'Show less ▲' : 'Show more ▼'}
+                        </button>
+                    </>
+                )}
+            </div>
+        );
+    })();
+
+    const episodesPanel = isSeries && detail && (
+        <aside className='watch-side'>
+            <div className='season-container'>
+                <h3>Episodes</h3>
+                <div className="custom-select">
+                    <button type='button' className="selected" onClick={() => setIsOpen(!isOpen)} aria-expanded={isOpen}>
+                        <span>Season {season}</span>
+                        <span aria-hidden="true">{isOpen ? '▲' : '▼'}</span>
+                    </button>
+                    {isOpen && (
+                        <div className="options">
+                            {Array.from({ length: detail.number_of_seasons }, (_, i) => i + 1).map(num => (
+                                <div
+                                    key={num}
+                                    className={`option ${num === season ? 'active' : ''}`}
+                                    onClick={() => { handleSeasonChange(num); setIsOpen(false); }}
+                                >
+                                    Season {num}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <div className='episode-container'>
+                    {episodes === null && (
+                        <SkeletonGrid className="episode-skeletons" count={4} label="Loading episodes..." />
+                    )}
+                    {episodes?.length === 0 && (
+                        <EmptyState
+                            compact
+                            icon={<FaFilm />}
+                            title="No episodes available"
+                            message="No aired episodes were found for this season."
+                        />
+                    )}
+                    {episodes?.map(ep => (
+                        <div
+                            key={ep.episode_number}
+                            className={`series ${ep.episode_number === episode ? 'current' : ""}`}
+                            onClick={() => handleEpisodeClick(ep.episode_number)}
+                        >
+                            {ep.still_path
+                                ? <img src={`https://image.tmdb.org/t/p/w200${ep.still_path}`} className='episode-img' alt="" loading="lazy" />
+                                : <div className='episode-img placeholder' aria-hidden="true"><FaFilm /></div>}
+                            <div className='episode-detail'>
+                                <div className='episode-count-container'>
+                                    <h4>{`E${ep.episode_number}`}</h4>
+                                    <p>{convertRuntime(ep.runtime)}</p>
+                                </div>
+                                <p className='episode-overview'>{ep.overview}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </aside>
+    );
 
     return (
-        <>
-            <div className='watch-page-header'>
-                <button 
-                    className='back-btn mobile'
-                    onClick={() => navigate(-1)}
-                >
-                    ←
-                </button>
-                <h2 className='title'>
-                    NOW PLAYING
-                </h2>
+        <main className='watch-page'>
+            <div className='watch-topbar'>
+                <button className='back-btn' onClick={goToDetails}>← Back to details</button>
+                <h2 className='watch-label'>Now playing</h2>
             </div>
-            <div
-                className='main-watch-container'
-                allowFullScreen
-            >
-                <iframe
-                    className='video'
-                    src={videoSourceLink}
-                    allowFullScreen
-                    allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-                    frameBorder={"0"}
-                />
-                {loading ?
-                    <LoadingState label="Loading player details..." />
-                    : loadError ?
-                    <div className='detail-container'>
+            <div className={`watch-layout${isSeries ? ' has-side' : ''}`}>
+                <section className='watch-main'>
+                    <div className='player-frame'>
+                        <iframe
+                            className='video'
+                            title='Video player'
+                            src={videoSourceLink}
+                            allowFullScreen
+                            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                            frameBorder={"0"}
+                        />
+                    </div>
+                    {loading ? (
+                        <LoadingState label="Loading player details..." />
+                    ) : loadError ? (
                         <EmptyState
                             compact
                             tone="error"
@@ -147,124 +247,18 @@ const WatchPage = () => {
                             message={loadError}
                             action={{ label: "Try again", onClick: () => setReloadKey((k) => k + 1) }}
                         />
-                    </div>
-                    :
-                    <div className='detail-container'>
-                        <button 
-                            className='back-btn desktop'
-                            onClick={() => navigate(-1)}
-                        >
-                            ← Back
-                        </button>
-                        {isSeries 
-                            ? <div
-                                className='season-container'
-                            >
-                                <div className='title-and-ratings'>
-                                    <h4>{detail.original_name}</h4>
-                                    <p>{`⭐ ${detail.vote_average.toFixed(1)}`}</p>
-                                </div>
-                                <p className='sub-detail'>{`${detail.first_air_date.split('-')[0]}-${detail.last_air_date.split('-')[0]} | ${detail.number_of_seasons} Seasons | ${detail.origin_country}`}</p>
-                                <div className='badges-container'>
-                                    {genres.map((genre) => (
-                                        <div key={genre.id} className='badges'>
-                                            {genre.name}
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className={`overview-container ${isOpenOverview ? 'viewing' : ''}`}>
-                                    <p className='overview'>{detail.overview}</p>
-                                </div>
-                                <button 
-                                    className='overview-toggle'
-                                    onClick={() => setIsOpenOverview(!isOpenOverview)}
-                                >
-                                    {isOpenOverview ? 'Show less ▲' : 'Show more ▼'}
-                                </button>
-                                <div className="custom-select">
-                                    <div className="selected" onClick={() => setIsOpen(!isOpen)}>
-                                        Season {season} ▼
-                                    </div>
-                                    {isOpen && (
-                                        <div className="options">
-                                        {Array.from({ length: detail.number_of_seasons }, (_, i) => i + 1).map(num => (
-                                            <div
-                                            key={num}
-                                            className={`option ${num === season ? 'active' : ''}`}
-                                            onClick={() => { handleSeasonChange(num); setIsOpen(false); }}
-                                            >
-                                            Season {num}
-                                            </div>
-                                        ))}
-                                        </div>
-                                    )}
-                                </div>
-                                <div className='episode-container'>
-                                    {episodes === null && (
-                                        <SkeletonGrid className="episode-skeletons" count={4} label="Loading episodes..." />
-                                    )}
-                                    {episodes?.length === 0 && (
-                                        <EmptyState
-                                            compact
-                                            icon={<FaFilm />}
-                                            title="No episodes available"
-                                            message="No aired episodes were found for this season."
-                                        />
-                                    )}
-                                    {episodes?.map(ep => (
-                                        <div 
-                                            key={ep.episode_number}
-                                            className={`series ${ep.episode_number === episode ? 'current' : ""}`}
-                                            onClick={() => handleEpisodeClick(ep.episode_number)}
-                                        >
-                                            <img
-                                                src={`https://image.tmdb.org/t/p/w200${ep.still_path}`}
-                                                className='episode-img'
-                                            />
-                                            <div className='episode-detail'>
-                                                <div className='episode-count-container'>
-                                                    <h4>{`E${ep.episode_number}`}</h4>
-                                                    <p>{convertRuntime(ep.runtime)}</p>
-                                                </div>
-                                                <p className='episode-overview'>
-                                                    {ep.overview}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                    ) : (
+                        <>
+                            {info}
+                            <div className='watch-related'>
+                                <WatchPageRelated category={isSeries ? 'tv' : 'movie'} id={id} />
                             </div>
-                            : <div>
-                                <div className='movie-detail'>
-                                    <div className='title-and-ratings'>
-                                        <h4>{detail.title}</h4>
-                                        <p>{`⭐ ${detail.vote_average.toFixed(1)}`}</p>
-                                    </div>
-                                    <p className='sub-detail'>{`${detail.release_date} | ${convertRuntime(detail.runtime)} | ${detail.origin_country}`}</p>
-                                    <div className='badges-container'>
-                                        {genres.map((genre) => (
-                                            <div key={genre.id} className='badges'>
-                                                {genre.name}
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className={`overview-container ${isOpenOverview ? 'viewing' : ''}`}>
-                                        <p className='overview'>{detail.overview}</p>
-                                    </div>
-                                    <button 
-                                        className='overview-toggle'
-                                        onClick={() => setIsOpenOverview(!isOpenOverview)}
-                                    >
-                                        {isOpenOverview ? 'Show less ▲' : 'Show more ▼'}
-                                    </button>
-                                </div>
-                            </div>
-                        }
-                        <WatchPageRelated category={isSeries ? 'tv' : 'movie'} id={id} />
-                    </div>
-                }
+                        </>
+                    )}
+                </section>
+                {!loading && !loadError && episodesPanel}
             </div>
-        </>
+        </main>
     )
 }
 

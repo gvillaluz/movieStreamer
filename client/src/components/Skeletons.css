@@ -61,7 +61,8 @@
   flex: 0 0 clamp(150px, 14vw, 210px);
   width: clamp(150px, 14vw, 210px);
 }
-@media (max-width: 700px) { .skeleton-row .movie-card { flex-basis: 150px; width: 150px; } }
+@media (max-width: 700px) { .skeleton-row .movie-card { flex-basis: 132px; width: 132px; } }
+@media (max-width: 480px) { .skeleton-row .movie-card { flex-basis: 124px; width: 124px; } }
 
 /* Title details placeholder */
 .detail-skeleton { padding-top: 2rem; }

@@ -1,4 +1,4 @@
-.search-container { width: min(320px, 100%); }
+.search-container { width: clamp(180px, 22vw, 320px); flex-shrink: 1; min-width: 0; }
 .search-container form { display: flex; gap: .5rem; }
 .search-container input {
   min-width: 0;
@@ -31,4 +31,48 @@
   transition: transform .2s, box-shadow .2s, filter .2s;
 }
 .search-container button:hover, .primary-button:hover { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 12px 30px rgba(229,9,20,.36); }
-@media (max-width: 700px) { .search-container { order: 3; width: 100%; } }
+.search-container .search-icon { display: none; }
+
+/*
+ * Phone: the search field collapses to a single icon button that sits in the
+ * navbar row. Tapping it opens the field over the navbar; the same button then
+ * submits the search (or closes the field if it is empty).
+ */
+@media (max-width: 1024px) {
+  .search-container { order: 1; width: auto; }
+  .search-container input { display: none; }
+  .search-container .search-label { display: none; }
+  .search-container .search-icon { display: inline-flex; font-size: 1.05rem; }
+  .search-container button {
+    width: 44px;
+    padding: 0;
+    flex: 0 0 44px;
+    color: #fff;
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+  .search-container button:hover { transform: none; box-shadow: none; background: rgba(255,255,255,.08); }
+
+  .search-container.expanded {
+    position: absolute;
+    top: 50%;
+    left: clamp(1rem, 4vw, 4rem);
+    right: clamp(1rem, 4vw, 4rem);
+    z-index: 2;
+    padding: .3rem;
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    background: linear-gradient(145deg, rgb(54, 20, 34), rgb(16, 9, 20));
+    box-shadow: 0 20px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.16);
+    transform: translateY(-50%);
+    animation: search-in .18s ease-out;
+  }
+  .search-container.expanded form { gap: .3rem; }
+  .search-container.expanded input { display: block; flex: 1; }
+  .search-container.expanded button {
+    background: linear-gradient(135deg, var(--accent-deep), var(--accent-strong) 55%, var(--accent));
+    border-color: rgba(255,255,255,.14);
+  }
+}
+@keyframes search-in { from { opacity: 0; transform: translateY(-50%) scale(.97); } to { opacity: 1; transform: translateY(-50%) scale(1); } }

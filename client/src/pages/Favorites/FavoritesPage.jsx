@@ -25,7 +25,7 @@ const FavoritesPage = () => {
                 <EmptyState
                     icon={<FaRegHeart />}
                     title="No favorites yet"
-                    message="Tap the heart on any movie or series to save it here."
+                    message="Open any movie or series and tap Add to favorites to save it here."
                     action={{ label: "Browse movies", onClick: () => navigate("/movie") }}
                 />
             ) : (

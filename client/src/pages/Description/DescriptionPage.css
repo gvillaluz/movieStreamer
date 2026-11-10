@@ -45,6 +45,29 @@
     background-color: rgba(185, 1, 1, 0.652);
 }
 
+
+.detail-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.fav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .55rem;
+    padding: 15px 20px;
+    font-size: 16px;
+    color: #ffe8e8;
+    border: 1px solid rgba(255, 190, 190, .25);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255,255,255,.1), rgba(229,9,20,.12));
+    transition: background .2s, border-color .2s, color .2s;
+}
+.fav-btn:hover { border-color: rgba(255, 107, 107, .6); background: linear-gradient(135deg, rgba(255,255,255,.14), rgba(229,9,20,.28)); }
+.fav-btn.active { color: #fff; border-color: rgba(255, 107, 107, .7); }
+.fav-btn.active svg { color: var(--accent); }
+@media (max-width: 768px) {
+    .detail-actions { flex-direction: column; }
+    .fav-btn { width: 100%; }
+}
+
 .noVid {        
     text-align: center;
     padding: 120px 20px 50px;

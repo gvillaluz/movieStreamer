@@ -1,24 +1,80 @@
+/*
+ * Movie card (all screen sizes)
+ * A 2:3 poster over a fixed two-line footer, so every card in a grid or row is the
+ * same shape. The title takes one line (ellipsis); year and rating share the second
+ * line, and the Movie/Series label sits on the poster as a badge.
+ */
 .movie-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   min-width: 0;
   border: 1px solid var(--glass-border);
-  border-radius: 14px;
+  border-radius: clamp(12px, 1.2vw, 16px);
   background: linear-gradient(145deg, rgba(42, 23, 38, .82), rgba(14, 16, 29, .9));
   cursor: pointer;
   box-shadow: inset 0 1px 0 var(--glass-highlight), 0 12px 30px rgba(0,0,0,.24);
   animation: card-in .45s ease both;
   transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
 }
-.movie-card:hover { transform: translateY(-5px); border-color: rgba(255,107,107,.65); box-shadow: 0 18px 34px rgba(0,0,0,.3), 0 0 0 1px rgba(229,9,20,.16); }
 .movie-card:focus-visible { outline: 2px solid #ff8b8b; outline-offset: 3px; }
 .movie-card #poster { display: block; width: 100%; aspect-ratio: 2 / 3; object-fit: cover; transition: transform .45s ease, filter .45s ease; }
-.movie-card:hover #poster { transform: scale(1.045); filter: saturate(1.12) brightness(.78); }
-.movie-card .likeBtn { position: absolute; top: 10px; right: 10px; z-index: 2; display: grid; place-items: center; width: 38px; height: 38px; color: #fff; border: 1px solid rgba(255,255,255,.25); border-radius: 50%; background: linear-gradient(145deg, rgba(72, 30, 48, .96), rgba(9,12,25, .98)); box-shadow: inset 0 1px 0 rgba(255,255,255,.2); opacity: 0; transition: opacity .2s, transform .2s, background .2s; }
-.movie-card:hover .likeBtn, .movie-card:focus-within .likeBtn, .movie-card .likeBtn[aria-pressed="true"] { opacity: 1; }
-.movie-card .likeBtn:hover { transform: scale(1.1); background: rgba(229,9,20,.78); }
-.movie-details { padding: .8rem .85rem .95rem; text-align: left; }
-.movie-details h4 { overflow: hidden; margin: 0 0 .25rem; font-size: .92rem; white-space: nowrap; text-overflow: ellipsis; }
-.movie-details span { color: var(--text-muted); font-size: .76rem; }
-@media (hover: none) { .movie-card .likeBtn { opacity: 1; } }
+
+@media (hover: hover) {
+  .movie-card:hover { transform: translateY(-4px); border-color: rgba(255,107,107,.65); box-shadow: 0 18px 34px rgba(0,0,0,.3), 0 0 0 1px rgba(229,9,20,.16); }
+  .movie-card:hover #poster { transform: scale(1.04); filter: saturate(1.12) brightness(.82); }
+}
+@media (hover: none) {
+  .movie-card:active { transform: scale(.98); }
+}
+
+.type-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  padding: .22rem .5rem;
+  color: #fff;
+  font-size: .62rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  border-radius: 7px;
+  background: rgba(8, 11, 22, .68);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.movie-details { flex: 1; padding: .7rem .8rem .8rem; text-align: left; }
+.movie-details h4 {
+  overflow: hidden;
+  margin: 0 0 .25rem;
+  font-size: .92rem;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.movie-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .35rem;
+  color: var(--text-muted);
+  font-size: .76rem;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.movie-meta .meta-type { display: none; } /* shown as the poster badge instead */
+.movie-meta .meta-rating { color: #ffb3b3; font-weight: 600; }
+
+@media (max-width: 700px) {
+  .type-badge { top: 6px; left: 6px; padding: .18rem .42rem; font-size: .6rem; border-radius: 6px; }
+  .movie-details { padding: .55rem .6rem .65rem; }
+  .movie-details h4 { margin-bottom: .2rem; font-size: .8rem; }
+  .movie-meta { font-size: .7rem; }
+}
+
 @keyframes card-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }

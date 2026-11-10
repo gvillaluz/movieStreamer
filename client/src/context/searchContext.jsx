@@ -8,7 +8,16 @@ export function SearchProvider({ children }) {
     const location = useLocation();
     const [searchQuery, setSearchQuery] = useState("");
     const [contents, setContent] = useState([]);
-    const [favorites, setFavorites] = useState([]);
+    // Read saved favorites up front. Loading them in an effect lets the "save" effect
+    // overwrite storage with [] first (StrictMode runs effects twice in dev).
+    const [favorites, setFavorites] = useState(() => {
+        try {
+            const stored = JSON.parse(localStorage.getItem("favorites"));
+            return Array.isArray(stored) ? stored : [];
+        } catch {
+            return [];
+        }
+    });
     const [isDescriptionPage, setIsDescriptionPage] = useState(false);
     const [searchResults, setSearchResults] = useState("");
     const [isSearching, setIsSearching] = useState(false);
@@ -18,11 +27,6 @@ export function SearchProvider({ children }) {
         const isDescription = !["/movie", "/series", "/favorites", "/"].includes(location.pathname);
         setIsDescriptionPage(isDescription);
     }, [location.pathname]);
-
-    useEffect(() => {
-        const storedFavorites = localStorage.getItem('favorites');
-        if (storedFavorites) setFavorites(JSON.parse(storedFavorites));
-    }, [])
 
     useEffect(() => {
         localStorage.setItem("favorites", JSON.stringify(favorites));
