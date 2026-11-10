@@ -13,7 +13,8 @@ import { SkeletonGrid } from '../../components/Skeletons';
 // Embed providers. Not every title exists on every provider, so the viewer can switch.
 const SERVERS = [
     { id: 'vidlink', label: 'Server 1' },
-    { id: 'vsembed', label: 'Server 2' },
+    { id: 'vidfast', label: 'Server 2' },
+    { id: 'vsembed', label: 'Server 3' },
 ];
 
 const WatchPage = () => {
@@ -182,8 +183,13 @@ const WatchPage = () => {
         : 0;
     const startAt = resumeAt > 0 ? `&startAt=${resumeAt}` : '';
 
-    // VidLink shows its controls on any mouse movement (vsembed only did on hover of the bar)
-    const videoSourceLink = activeServer === 'vsembed'
+    // VidLink and VidFast show their controls (and a CC button) on any mouse movement;
+    // vsembed's controls often never appear, so it's the last-resort server.
+    const videoSourceLink = activeServer === 'vidfast'
+        ? (isSeries
+            ? `https://vidfast.pro/tv/${id}/${season}/${episode}?autoPlay=false&nextButton=true&theme=e50914${startAt}`
+            : `https://vidfast.pro/movie/${id}?autoPlay=false&theme=e50914${startAt}`)
+        : activeServer === 'vsembed'
         ? (isSeries
             ? `https://vsembed.ru/embed/tv/${id}/${season}/${episode}?ds_lang=en${startAt}`
             : `https://vsembed.ru/embed/movie/${id}?ds_lang=en${startAt}`)

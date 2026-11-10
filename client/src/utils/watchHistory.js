@@ -12,7 +12,7 @@ const MIN_SECONDS = 10;      // ignore the first few seconds: probably an accide
 const FINISHED_RATIO = 0.95; // past this the title counts as watched
 
 // Embed origins we trust progress events from
-export const PLAYER_ORIGINS = ["https://vidlink.pro", "https://vsembed.ru"];
+export const PLAYER_ORIGINS = ["https://vidlink.pro", "https://vidfast.vc", "https://vidfast.pro", "https://vsembed.ru"];
 
 const read = () => {
     try {
@@ -66,6 +66,7 @@ export const recordProgress = ({ id, category, title, poster_path, season, episo
 };
 
 const toNumber = (value) => {
+    if (value === null || value === "") return undefined;
     const n = Number(value);
     return Number.isFinite(n) ? n : undefined;
 };
@@ -73,7 +74,7 @@ const toNumber = (value) => {
 /**
  * Normalise a window "message" event from either embed provider.
  * Returns null for anything that isn't a trusted player progress event.
- *   VidLink:  { type: "PLAYER_EVENT", data: { event, currentTime, duration, mtmdbId, mediaType, season, episode } }
+ *   VidLink and VidFast (same shape):  { type: "PLAYER_EVENT", data: { event, currentTime, duration, mtmdbId, mediaType, season, episode } }
  *   vsembed:  { type: "PLAYER_EVENT", data: { player_status, player_progress, player_duration, player_info: {...} } }
  */
 export const parsePlayerMessage = (event) => {
