@@ -5,7 +5,7 @@ import { getEpisodesBySeason, getVideoById } from '../../services/serviceAPI';
 import { convertRuntime } from '../../utils/DurationUtils';
 import { getEntry, parsePlayerMessage, recordProgress } from '../../utils/watchHistory';
 import WatchPageRelated from './components/WatchPageRelated';
-import { FaExclamationTriangle, FaFilm, FaPlay } from 'react-icons/fa';
+import { FaExclamationTriangle, FaExpand, FaFilm, FaPlay } from 'react-icons/fa';
 import LoadingState from '../../components/LoadingState';
 import EmptyState from '../../components/EmptyState';
 import { SkeletonGrid } from '../../components/Skeletons';
@@ -43,6 +43,7 @@ const WatchPage = () => {
     const isSeries = category === 'tv' ? true : false;
 
     const playerRef = useRef(null);
+    const frameRef = useRef(null);
     const lastSavedRef = useRef(0);
     // Where this title was left off. Read once per title so saving progress while watching
     // never changes the player URL (that would reload the video).
@@ -197,6 +198,16 @@ const WatchPage = () => {
             ? `https://vidlink.pro/tv/${id}/${season}/${episode}?autoplay=false&nextbutton=true${startAt}`
             : `https://vidlink.pro/movie/${id}?autoplay=false${startAt}`);
 
+    // Fullscreen the whole frame from this page, so it works even when the embedded
+    // player's own fullscreen button doesn't.
+    const toggleFullscreen = () => {
+        if (document.fullscreenElement) {
+            document.exitFullscreen?.();
+        } else {
+            frameRef.current?.requestFullscreen?.().catch(() => { /* blocked by the browser */ });
+        }
+    };
+
     // Go to this title's details page. history -1 is unreliable here: the embedded player
     // adds its own history entries, so "back" would just step through its episodes.
     const goToDetails = () => {
@@ -326,23 +337,28 @@ const WatchPage = () => {
             <div className='watch-topbar'>
                 <button className='back-btn' onClick={goToDetails}>← Back to details</button>
                 <h2 className='watch-label'>Now playing</h2>
-                <div className='server-switch' role='group' aria-label='Video server'>
-                    {SERVERS.map(s => (
-                        <button
-                            key={s.id}
-                            type='button'
-                            className={`server-btn${activeServer === s.id ? ' active' : ''}`}
-                            aria-pressed={activeServer === s.id}
-                            onClick={() => handleServerChange(s.id)}
-                        >
-                            {s.label}
-                        </button>
-                    ))}
+                <div className='watch-tools'>
+                    <button type='button' className='fullscreen-btn' onClick={toggleFullscreen} title='Fullscreen'>
+                        <FaExpand aria-hidden='true' /> <span>Fullscreen</span>
+                    </button>
+                    <div className='server-switch' role='group' aria-label='Video server'>
+                        {SERVERS.map(s => (
+                            <button
+                                key={s.id}
+                                type='button'
+                                className={`server-btn${activeServer === s.id ? ' active' : ''}`}
+                                aria-pressed={activeServer === s.id}
+                                onClick={() => handleServerChange(s.id)}
+                            >
+                                {s.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
             <div className={`watch-layout${isSeries ? ' has-side' : ''}`}>
                 <section className='watch-main'>
-                    <div className='player-frame'>
+                    <div className='player-frame' ref={frameRef}>
                         {/* Wait for the details so the right provider is chosen (anime vs. other series) */}
                         {!loading && (
                             <iframe
