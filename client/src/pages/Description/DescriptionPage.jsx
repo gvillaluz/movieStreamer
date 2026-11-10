@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { searchById } from "../../services/serviceAPI";
-import { useLocation, useParams, useNavigate } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
+import { useAppNavigation } from "../../hooks/useAppNavigation";
 import Details from './components/Details'
 import Trailer from "./components/Trailer";
 import './DescriptionPage.css'
@@ -12,7 +13,7 @@ import { DetailSkeleton } from "../../components/Skeletons";
 
 const DescriptionPage = () => {
     const location = useLocation();
-    const navigate = useNavigate();
+    const { go } = useAppNavigation();
     const { id } = useParams();
     const [content, setContent] = useState(null);
     const [error, setError] = useState("");
@@ -38,13 +39,16 @@ const DescriptionPage = () => {
     useEffect(() => { load(); }, [load]);
 
     const handleWatchNow = () => {
-        navigate(`/watch/${category}/${content.data.id}`);
+        go(`/watch/${category}/${content.data.id}`);
     }
+
+    // Opened directly (no trail to return along): Back goes to the list this title belongs to
+    const listPage = location.pathname.includes("series") ? "/series" : "/movie";
 
     if (error) {
         return (
             <main className="page-content">
-                <PageBackButton />
+                <PageBackButton fallback={listPage} />
                 <EmptyState
                     tone="error"
                     icon={<FaExclamationTriangle />}
@@ -62,7 +66,7 @@ const DescriptionPage = () => {
 
     return (
         <main className="description-page page-content">
-            <PageBackButton />
+            <PageBackButton fallback={listPage} />
             <div className="description">
                 <Details content={content.data} category={category} handleWatchNow={handleWatchNow} />
                 {content.trailer && <Trailer video={content.trailer.key} />}

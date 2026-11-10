@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { FaRegHeart } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useAppNavigation } from "../../hooks/useAppNavigation";
 import EmptyState from "../../components/EmptyState";
 import { SearchContext } from "../../context/searchContext";
 import MovieCard from "../../components/MovieCard";
@@ -9,7 +9,7 @@ import PageBackButton from "../../components/PageBackButton";
 
 const FavoritesPage = () => {
     const { favorites } = useContext(SearchContext);
-    const navigate = useNavigate();
+    const { go } = useAppNavigation();
     const items = favorites.filter((fav) => fav.poster_path);
 
     return (
@@ -26,7 +26,7 @@ const FavoritesPage = () => {
                     icon={<FaRegHeart />}
                     title="No favorites yet"
                     message="Open any movie or series and tap Add to favorites to save it here."
-                    action={{ label: "Browse movies", onClick: () => navigate("/movie") }}
+                    action={{ label: "Browse movies", onClick: () => go("/movie") }}
                 />
             ) : (
                 <div className="movie-list">

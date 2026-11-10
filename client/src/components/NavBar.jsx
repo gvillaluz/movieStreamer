@@ -1,11 +1,9 @@
 import SearchBar from "./SearchBar";
 import './NavBar.css';
 import { Link, useLocation } from "react-router-dom";
-import { useContext, useState } from "react";
-import { SearchContext } from "../context/searchContext";
+import { useState } from "react";
 
 const NavBar = () => {
-    const { isDescriptionPage } = useContext(SearchContext);
     const [isOpen, setIsOpen] = useState(false);
     const location = useLocation();
 
@@ -45,7 +43,7 @@ const NavBar = () => {
                         </Link>
                     </ul>
                 </div>
-                {!isDescriptionPage && <SearchBar />}
+                <SearchBar />
             </div>
         </div>
     )

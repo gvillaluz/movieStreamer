@@ -1,11 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAppNavigation } from '../../hooks/useAppNavigation';
 import './WatchPage.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getEpisodesBySeason, getVideoById } from '../../services/serviceAPI';
 import { convertRuntime } from '../../utils/DurationUtils';
 import { getEntry, parsePlayerMessage, recordProgress } from '../../utils/watchHistory';
 import WatchPageRelated from './components/WatchPageRelated';
-import { FaExclamationTriangle, FaExpand, FaFilm, FaPlay } from 'react-icons/fa';
+import { FaExclamationTriangle, FaFilm, FaPlay } from 'react-icons/fa';
 import LoadingState from '../../components/LoadingState';
 import EmptyState from '../../components/EmptyState';
 import { SkeletonGrid } from '../../components/Skeletons';
@@ -20,6 +21,7 @@ const SERVERS = [
 const WatchPage = () => {
     const { id, category } = useParams();
     const navigate = useNavigate();
+    const { goBack, backStack } = useAppNavigation();
     const [detail, setDetail] = useState();
     const [episode, setEpisode] = useState(1);
     const [episodes, setEpisodes] = useState(null);
@@ -43,7 +45,6 @@ const WatchPage = () => {
     const isSeries = category === 'tv' ? true : false;
 
     const playerRef = useRef(null);
-    const frameRef = useRef(null);
     const lastSavedRef = useRef(0);
     // Where this title was left off. Read once per title so saving progress while watching
     // never changes the player URL (that would reload the video).
@@ -111,7 +112,9 @@ const WatchPage = () => {
     // Save how far the viewer got, from the progress events the embedded player posts to this page
     useEffect(() => {
         const onMessage = (event) => {
-            if (!playerRef.current || event.source !== playerRef.current.contentWindow) return;
+            // Origins are whitelisted in parsePlayerMessage. Not checking event.source because
+            // some players post from a frame nested inside the iframe.
+            if (!playerRef.current) return;
             const msg = parsePlayerMessage(event);
             if (!msg || (msg.tmdbId !== undefined && String(msg.tmdbId) !== String(id))) return;
 
@@ -167,9 +170,9 @@ const WatchPage = () => {
         }));
     }
 
-    // Japanese animation defaults to vsembed: VidLink's anime route needs MyAnimeList IDs.
-    const isAnime = isSeries && detail?.original_language === 'ja' && detail?.genres?.some(g => g.id === 16);
-    const activeServer = server ?? (isAnime ? 'vsembed' : 'vidlink');
+    // VidLink is the default for everything, anime included: it loads the right show and has working
+    // subtitles. VidFast (no anime route) and vsembed were tested and are not reliable for anime.
+    const activeServer = server ?? 'vidlink';
 
     const handleServerChange = (selected) => {
         setServer(selected);
@@ -184,12 +187,17 @@ const WatchPage = () => {
         : 0;
     const startAt = resumeAt > 0 ? `&startAt=${resumeAt}` : '';
 
+    // Only providers that serve their own player are used. Wrappers such as VidCore and Videasy
+    // nest the real player in a sandboxed iframe, which the player detects and refuses to run in.
+    // VidFast is loaded from vidfast.vc directly: vidfast.pro redirects there, which adds a round trip
+    // and moves the player to a different origin than the iframe's `allow="fullscreen"` was granted to,
+    // so its fullscreen button did nothing.
     // VidLink and VidFast show their controls (and a CC button) on any mouse movement;
-    // vsembed's controls often never appear, so it's the last-resort server.
+    // vsembed is the original provider, kept as the last resort: its controls often never appear.
     const videoSourceLink = activeServer === 'vidfast'
         ? (isSeries
-            ? `https://vidfast.pro/tv/${id}/${season}/${episode}?autoPlay=false&nextButton=true&theme=e50914${startAt}`
-            : `https://vidfast.pro/movie/${id}?autoPlay=false&theme=e50914${startAt}`)
+            ? `https://vidfast.vc/tv/${id}/${season}/${episode}?autoPlay=false&nextButton=true&theme=e50914${startAt}`
+            : `https://vidfast.vc/movie/${id}?autoPlay=false&theme=e50914${startAt}`)
         : activeServer === 'vsembed'
         ? (isSeries
             ? `https://vsembed.ru/embed/tv/${id}/${season}/${episode}?ds_lang=en${startAt}`
@@ -198,22 +206,21 @@ const WatchPage = () => {
             ? `https://vidlink.pro/tv/${id}/${season}/${episode}?autoplay=false&nextbutton=true${startAt}`
             : `https://vidlink.pro/movie/${id}?autoplay=false${startAt}`);
 
-    // Fullscreen the whole frame from this page, so it works even when the embedded
-    // player's own fullscreen button doesn't.
-    const toggleFullscreen = () => {
-        if (document.fullscreenElement) {
-            document.exitFullscreen?.();
-        } else {
-            frameRef.current?.requestFullscreen?.().catch(() => { /* blocked by the browser */ });
-        }
-    };
-
     // Go to this title's details page. history -1 is unreliable here: the embedded player
     // adds its own history entries, so "back" would just step through its episodes.
+    // When the viewer came from the details page, return along the trail so the details page keeps
+    // its own way back (to the list or search they started from). Otherwise (opened from "Continue
+    // watching" or a direct link) open the details page and keep the trail, so Back there still works.
     const goToDetails = () => {
+        const section = isSeries ? "series" : "movie";
         const name = (isSeries ? (detail?.name || detail?.original_name) : detail?.title) || "title";
         const slug = name.replaceAll(/\s+/g, "").toLowerCase();
-        navigate(`/${isSeries ? "series" : "movie"}/${id}/${slug}`);
+        const target = `/${section}/${id}/${slug}`;
+        if (backStack[backStack.length - 1]?.startsWith(`/${section}/${id}/`)) {
+            goBack(target);
+        } else {
+            navigate(target, { state: { backStack } });
+        }
         window.scrollTo({ top: 0 });
     };
 
@@ -338,9 +345,6 @@ const WatchPage = () => {
                 <button className='back-btn' onClick={goToDetails}>← Back to details</button>
                 <h2 className='watch-label'>Now playing</h2>
                 <div className='watch-tools'>
-                    <button type='button' className='fullscreen-btn' onClick={toggleFullscreen} title='Fullscreen'>
-                        <FaExpand aria-hidden='true' /> <span>Fullscreen</span>
-                    </button>
                     <div className='server-switch' role='group' aria-label='Video server'>
                         {SERVERS.map(s => (
                             <button
@@ -358,7 +362,7 @@ const WatchPage = () => {
             </div>
             <div className={`watch-layout${isSeries ? ' has-side' : ''}`}>
                 <section className='watch-main'>
-                    <div className='player-frame' ref={frameRef}>
+                    <div className='player-frame'>
                         {/* Wait for the details so the right provider is chosen (anime vs. other series) */}
                         {!loading && (
                             <iframe

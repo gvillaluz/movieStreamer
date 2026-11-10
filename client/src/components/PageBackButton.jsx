@@ -1,11 +1,12 @@
 import { FaArrowLeft } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useAppNavigation } from "../hooks/useAppNavigation";
 
-const PageBackButton = () => {
-    const navigate = useNavigate();
+/** Back to the page the viewer came from, or to `fallback` when the page was opened directly. */
+const PageBackButton = ({ fallback = "/" }) => {
+    const { goBack } = useAppNavigation();
 
     return (
-        <button className="page-back-button" type="button" onClick={() => navigate(-1)}>
+        <button className="page-back-button" type="button" onClick={() => goBack(fallback)}>
             <FaArrowLeft aria-hidden="true" />
             <span>Back</span>
         </button>

@@ -1,6 +1,7 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { FaArrowRight, FaFilm, FaPlay, FaSearch, FaExclamationTriangle } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useAppNavigation } from "../../hooks/useAppNavigation";
+import PageBackButton from "../../components/PageBackButton";
 import MovieCard from "../../components/MovieCard";
 import EmptyState from "../../components/EmptyState";
 import ScrollRow from "../../components/ScrollRow";
@@ -26,7 +27,7 @@ const heroImage = (item) => item.backdrop_path || item.poster_path;
 const hasPoster = (content) => Boolean(content?.poster_path && (content.title || content.name));
 
 const HomePage = () => {
-    const navigate = useNavigate();
+    const { go, canGoBack } = useAppNavigation();
     const { contents, searchResults, isSearching } = useContext(SearchContext);
     const [feed, setFeed] = useState(null);
     const [error, setError] = useState("");
@@ -86,6 +87,8 @@ const HomePage = () => {
         const searchItems = Array.from(new Map(contents.map((content) => [content.id, content])).values()).filter(hasPoster);
         return (
             <main className="page-content home-search-results">
+                {/* Only when the search was started from another page (e.g. a title), so Back returns there */}
+                {canGoBack && <PageBackButton />}
                 <div className="section-heading">
                     <div>
                         <span className="eyebrow">Search library</span>
@@ -122,7 +125,7 @@ const HomePage = () => {
                         <span className="eyebrow">{eyebrow}</span>
                         <h2>{title}</h2>
                     </div>
-                    <button className="text-button" onClick={() => navigate(to)}>
+                    <button className="text-button" onClick={() => go(to)}>
                         Explore <FaArrowRight />
                     </button>
                 </div>
@@ -171,7 +174,7 @@ const HomePage = () => {
                             <div className="hero-actions">
                                 <button
                                     className="primary-button"
-                                    onClick={() => navigate(`/${featuredType}/${featured.id}/${featuredTitle.replaceAll(/\s+/g, "").toLowerCase()}`)}
+                                    onClick={() => go(`/${featuredType}/${featured.id}/${featuredTitle.replaceAll(/\s+/g, "").toLowerCase()}`)}
                                 >
                                     <FaPlay /> View details
                                 </button>
