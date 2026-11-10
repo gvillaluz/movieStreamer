@@ -1,13 +1,20 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import './WatchPage.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getEpisodesBySeason, getVideoById } from '../../services/serviceAPI';
 import { convertRuntime } from '../../utils/DurationUtils';
+import { getEntry, parsePlayerMessage, recordProgress } from '../../utils/watchHistory';
 import WatchPageRelated from './components/WatchPageRelated';
 import { FaExclamationTriangle, FaFilm, FaPlay } from 'react-icons/fa';
 import LoadingState from '../../components/LoadingState';
 import EmptyState from '../../components/EmptyState';
 import { SkeletonGrid } from '../../components/Skeletons';
+
+// Embed providers. Not every title exists on every provider, so the viewer can switch.
+const SERVERS = [
+    { id: 'vidlink', label: 'Server 1' },
+    { id: 'vsembed', label: 'Server 2' },
+];
 
 const WatchPage = () => {
     const { id, category } = useParams();
@@ -22,8 +29,23 @@ const WatchPage = () => {
     const [reloadKey, setReloadKey] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
     const [isOpenOverview, setIsOpenOverview] = useState(false);
+    // null = automatic (see below); otherwise the server the viewer picked last
+    const [server, setServer] = useState(() => {
+        try {
+            const saved = localStorage.getItem('player_server');
+            return SERVERS.some(s => s.id === saved) ? saved : null;
+        } catch {
+            return null;
+        }
+    });
 
     const isSeries = category === 'tv' ? true : false;
+
+    const playerRef = useRef(null);
+    const lastSavedRef = useRef(0);
+    // Where this title was left off. Read once per title so saving progress while watching
+    // never changes the player URL (that would reload the video).
+    const resume = useMemo(() => getEntry(id, category), [id, category]);
 
     useEffect(() => {
         const loadMovieDetail = async () => {
@@ -84,6 +106,35 @@ const WatchPage = () => {
         getEpisodes();
     }, [season, isSeries]);
 
+    // Save how far the viewer got, from the progress events the embedded player posts to this page
+    useEffect(() => {
+        const onMessage = (event) => {
+            if (!playerRef.current || event.source !== playerRef.current.contentWindow) return;
+            const msg = parsePlayerMessage(event);
+            if (!msg || (msg.tmdbId !== undefined && String(msg.tmdbId) !== String(id))) return;
+
+            // Players report many times a second; save every few seconds, and always on the end
+            const now = Date.now();
+            if (!msg.ended && now - lastSavedRef.current < 5000) return;
+            lastSavedRef.current = now;
+
+            recordProgress({
+                id,
+                category,
+                title: isSeries ? (detail?.name || detail?.original_name) : detail?.title,
+                poster_path: detail?.poster_path,
+                season: msg.season ?? season,
+                episode: msg.episode ?? episode,
+                time: msg.time,
+                duration: msg.duration,
+                ended: msg.ended,
+            });
+        };
+
+        window.addEventListener('message', onMessage);
+        return () => window.removeEventListener('message', onMessage);
+    }, [id, category, isSeries, detail, season, episode]);
+
     // Bring the playing episode into view inside the list (without scrolling the page)
     useEffect(() => {
         if (!episodes?.length) return;
@@ -114,10 +165,31 @@ const WatchPage = () => {
         }));
     }
 
-    const series = `https://vsembed.ru/embed/tv/${id}/${season}/${episode}?ds_lang=en`;
-    const movie = `https://vsembed.ru/embed/movie/${id}`;
+    // Japanese animation defaults to vsembed: VidLink's anime route needs MyAnimeList IDs.
+    const isAnime = isSeries && detail?.original_language === 'ja' && detail?.genres?.some(g => g.id === 16);
+    const activeServer = server ?? (isAnime ? 'vsembed' : 'vidlink');
 
-    const videoSourceLink = isSeries ? series : movie;
+    const handleServerChange = (selected) => {
+        setServer(selected);
+        try {
+            localStorage.setItem('player_server', selected);
+        } catch { /* storage unavailable: the choice just won't persist */ }
+    };
+
+    // Pick up where the viewer left off (only for the episode they were actually watching)
+    const resumeAt = resume && (!isSeries || (resume.season === season && resume.episode === episode))
+        ? Math.floor(resume.time)
+        : 0;
+    const startAt = resumeAt > 0 ? `&startAt=${resumeAt}` : '';
+
+    // VidLink shows its controls on any mouse movement (vsembed only did on hover of the bar)
+    const videoSourceLink = activeServer === 'vsembed'
+        ? (isSeries
+            ? `https://vsembed.ru/embed/tv/${id}/${season}/${episode}?ds_lang=en${startAt}`
+            : `https://vsembed.ru/embed/movie/${id}?ds_lang=en${startAt}`)
+        : (isSeries
+            ? `https://vidlink.pro/tv/${id}/${season}/${episode}?autoplay=false&nextbutton=true${startAt}`
+            : `https://vidlink.pro/movie/${id}?autoplay=false${startAt}`);
 
     // Go to this title's details page. history -1 is unreliable here: the embedded player
     // adds its own history entries, so "back" would just step through its episodes.
@@ -248,18 +320,35 @@ const WatchPage = () => {
             <div className='watch-topbar'>
                 <button className='back-btn' onClick={goToDetails}>← Back to details</button>
                 <h2 className='watch-label'>Now playing</h2>
+                <div className='server-switch' role='group' aria-label='Video server'>
+                    {SERVERS.map(s => (
+                        <button
+                            key={s.id}
+                            type='button'
+                            className={`server-btn${activeServer === s.id ? ' active' : ''}`}
+                            aria-pressed={activeServer === s.id}
+                            onClick={() => handleServerChange(s.id)}
+                        >
+                            {s.label}
+                        </button>
+                    ))}
+                </div>
             </div>
             <div className={`watch-layout${isSeries ? ' has-side' : ''}`}>
                 <section className='watch-main'>
                     <div className='player-frame'>
-                        <iframe
-                            className='video'
-                            title='Video player'
-                            src={videoSourceLink}
-                            allowFullScreen
-                            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-                            frameBorder={"0"}
-                        />
+                        {/* Wait for the details so the right provider is chosen (anime vs. other series) */}
+                        {!loading && (
+                            <iframe
+                                ref={playerRef}
+                                className='video'
+                                title='Video player'
+                                src={videoSourceLink}
+                                allowFullScreen
+                                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                                frameBorder={"0"}
+                            />
+                        )}
                     </div>
                     {loading ? (
                         <LoadingState label="Loading player details..." />
