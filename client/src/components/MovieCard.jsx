@@ -1,8 +1,8 @@
 import './MovieCard.css'
-import { useNavigate } from 'react-router-dom';
+import { useAppNavigation } from '../hooks/useAppNavigation';
 
 const MovieCard = ({ content }) => {
-    const navigate = useNavigate();
+    const { go } = useAppNavigation();
     const imageUrl = `https://image.tmdb.org/t/p/w200${content.poster_path}`;
     const title = !content.title ? content.name : content.title;
     const releaseDate = content.release_date || content.first_air_date;
@@ -17,14 +17,14 @@ const MovieCard = ({ content }) => {
             role="link"
             tabIndex="0"
             onClick={() => {
-                    navigate(`/${type}/${content.id}/${title.replaceAll(/\s+/g, "").toLowerCase()}`);
+                    go(`/${type}/${content.id}/${title.replaceAll(/\s+/g, "").toLowerCase()}`);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                 }
             }
             onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
-                    navigate(`/${type}/${content.id}/${title.replaceAll(/\s+/g, "").toLowerCase()}`);
+                    go(`/${type}/${content.id}/${title.replaceAll(/\s+/g, "").toLowerCase()}`);
                 }
             }}
         >

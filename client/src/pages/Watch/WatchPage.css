@@ -22,22 +22,6 @@
 .watch-topbar .back-btn { margin: 0; }
 
 .watch-tools { display: flex; align-items: center; gap: .6rem; margin-left: auto; }
-.fullscreen-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: .4rem;
-  padding: .4rem .85rem;
-  color: var(--text-soft);
-  font-size: .8rem;
-  font-weight: 700;
-  border: 1px solid var(--glass-border);
-  border-radius: 999px;
-  background: var(--glass-soft);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.fullscreen-btn:hover { color: var(--text); }
-@media (max-width: 520px) { .fullscreen-btn span { display: none; } }
 /* Provider switch: not every title is on every server */
 .server-switch {
   display: flex;
@@ -59,6 +43,15 @@
   -webkit-tap-highlight-color: transparent;
 }
 .server-btn:hover { color: var(--text-soft); }
+/* Four servers: keep each label on one line and let the top bar wrap instead of squeezing them */
+.server-btn { white-space: nowrap; }
+@media (max-width: 640px) {
+  .watch-topbar { flex-wrap: wrap; row-gap: .6rem; }
+  .watch-tools { flex: 1 1 100%; margin-left: 0; justify-content: center; }
+  /* Phone: the switch spans the row and each server is an equal, easy-to-hit target */
+  .server-switch { width: 100%; }
+  .server-btn { flex: 1; min-height: 38px; padding-inline: .5rem; }
+}
 .server-btn.active { color: var(--text-on-accent); background: linear-gradient(135deg, var(--accent-deep), var(--accent-strong)); }
 .watch-label {
   margin: 0;
@@ -93,7 +86,6 @@
   box-shadow: 0 24px 60px rgba(0, 0, 0, .5);
 }
 .player-frame .video { display: block; width: 100%; height: 100%; border: 0; background: #000; }
-.player-frame:fullscreen { border: 0; border-radius: 0; box-shadow: none; aspect-ratio: auto; }
 
 /* Title + details */
 .watch-page p { text-align: left; }
@@ -337,8 +329,12 @@
   .series.current .episode-thumb { animation: none; }
 }
 
-/* Tablet + phone: single column, episodes before "More like this" */
-@media (max-width: 1024px) {
+/*
+ * Tablet portrait + phone: single column, episodes before "More like this".
+ * The breakpoint is 899px (not 1024px) so an iPad in landscape (1024px and up) keeps the two-column
+ * layout: the player stays a sensible size and the episode list sits beside it instead of far below.
+ */
+@media (max-width: 899px) {
   .watch-layout, .watch-layout.has-side { grid-template-columns: minmax(0, 1fr); }
   .watch-main { display: contents; }
   .player-frame { order: 1; }
@@ -353,4 +349,36 @@
   .watch-topbar { padding: .75rem 0; }
   .player-frame { margin-inline: calc(var(--gutter) * -1); border-width: 1px 0; border-radius: 0; }
   .title-and-ratings { flex-wrap: wrap; gap: .25rem 1rem; }
+}
+
+/* Two columns on a short landscape screen (a phone on its side, or a small tablet): the side panel
+   has to scroll within the viewport, not run past it */
+@media (min-width: 900px) and (max-height: 600px) {
+  .watch-side { top: .5rem; }
+  .episode-container { max-height: calc(100vh - 160px); }
+}
+
+/*
+ * A phone turned on its side: a full-width 16:9 player is taller than the screen, which hides its
+ * controls below the fold. Fit the player to the visible height instead and centre it.
+ */
+@media (max-width: 899px) and (orientation: landscape) and (max-height: 540px) {
+  .watch-topbar { padding: .5rem 0; }
+  .player-frame {
+    width: min(100%, calc((100vh - 76px) * 16 / 9));
+    width: min(100%, calc((100dvh - 76px) * 16 / 9));
+    margin-inline: auto;
+    border-width: 1px;
+    border-radius: 12px;
+  }
+}
+
+/* Touch screens: bigger targets for the controls that sit outside the player */
+@media (pointer: coarse) {
+  .server-btn { min-height: 38px; padding-inline: 1rem; }
+  .selected { min-height: 48px; }
+  .option { padding: .85rem .9rem; }
+  .overview-toggle { padding: .75rem 0; }
+  /* no hover on touch: don't nudge rows sideways on tap */
+  .series:hover { transform: none; }
 }

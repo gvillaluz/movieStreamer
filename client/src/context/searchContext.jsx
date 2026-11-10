@@ -1,11 +1,15 @@
 import { createContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { search, loadMovies, loadSeries } from "../services/serviceAPI";
+import { useAppNavigation } from "../hooks/useAppNavigation";
 
 export const SearchContext = createContext();
 
+const RESULT_PAGES = ["/", "/movie", "/series"];
+
 export function SearchProvider({ children }) {
     const location = useLocation();
+    const { go } = useAppNavigation();
     const [searchQuery, setSearchQuery] = useState("");
     const [contents, setContent] = useState([]);
     // Read saved favorites up front. Loading them in an effect lets the "save" effect
@@ -18,15 +22,9 @@ export function SearchProvider({ children }) {
             return [];
         }
     });
-    const [isDescriptionPage, setIsDescriptionPage] = useState(false);
     const [searchResults, setSearchResults] = useState("");
     const [isSearching, setIsSearching] = useState(false);
     const [error, setError] = useState("");
-
-    useEffect(() => {
-        const isDescription = !["/movie", "/series", "/favorites", "/"].includes(location.pathname);
-        setIsDescriptionPage(isDescription);
-    }, [location.pathname]);
 
     useEffect(() => {
         localStorage.setItem("favorites", JSON.stringify(favorites));
@@ -45,6 +43,10 @@ export function SearchProvider({ children }) {
         e.preventDefault();
         const query = searchQuery.trim();
         if (!query) return;
+
+        // Only these pages list search results. From anywhere else (a title's details, favorites) the
+        // results are shown on Home, and Back there returns to the page the search was started from.
+        if (!RESULT_PAGES.includes(location.pathname)) go("/");
 
         setIsSearching(true);
         setError("");
@@ -79,8 +81,6 @@ export function SearchProvider({ children }) {
         handleSearch,
         favorites,
         addToFavorites,
-        isDescriptionPage,
-        setIsDescriptionPage,
         searchResults,
         setSearchResults,
         isSearching,

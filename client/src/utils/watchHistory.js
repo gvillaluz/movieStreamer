@@ -72,10 +72,10 @@ const toNumber = (value) => {
 };
 
 /**
- * Normalise a window "message" event from either embed provider.
+ * Normalise a window "message" event from an embed provider.
  * Returns null for anything that isn't a trusted player progress event.
  *   VidLink and VidFast (same shape):  { type: "PLAYER_EVENT", data: { event, currentTime, duration, mtmdbId, mediaType, season, episode } }
- *   vsembed:  { type: "PLAYER_EVENT", data: { player_status, player_progress, player_duration, player_info: {...} } }
+ *   vsembed:   { type: "PLAYER_EVENT", data: { player_status, player_progress, player_duration, player_info: {...} } }
  */
 export const parsePlayerMessage = (event) => {
     if (!PLAYER_ORIGINS.includes(event.origin)) return null;
@@ -84,7 +84,9 @@ export const parsePlayerMessage = (event) => {
     if (typeof msg === "string") {
         try { msg = JSON.parse(msg); } catch { return null; }
     }
-    if (!msg || msg.type !== "PLAYER_EVENT" || typeof msg.data !== "object" || !msg.data) return null;
+    if (!msg || typeof msg !== "object") return null;
+
+    if (msg.type !== "PLAYER_EVENT" || typeof msg.data !== "object" || !msg.data) return null;
 
     const d = msg.data;
     if (d.player_status !== undefined) {

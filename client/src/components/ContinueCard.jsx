@@ -1,5 +1,5 @@
 import { FaPlay, FaTimes } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useAppNavigation } from "../hooks/useAppNavigation";
 import "./MovieCard.css";
 import "./ContinueCard.css";
 
@@ -11,7 +11,7 @@ const timeLeft = (entry) => {
 
 /** A poster card for a title that was started but not finished: progress bar, resume on click. */
 const ContinueCard = ({ entry, onRemove }) => {
-    const navigate = useNavigate();
+    const { go } = useAppNavigation();
     const isSeries = entry.category === "tv";
     const percent = Math.min(100, Math.round((entry.time / entry.duration) * 100));
     const subtitle = isSeries ? `S${entry.season} · E${entry.episode}` : "Movie";
@@ -23,7 +23,7 @@ const ContinueCard = ({ entry, onRemove }) => {
                 localStorage.setItem(`progress_${entry.id}`, JSON.stringify({ season: entry.season, episode: entry.episode }));
             } catch { /* ignore */ }
         }
-        navigate(`/watch/${entry.category}/${entry.id}`);
+        go(`/watch/${entry.category}/${entry.id}`);
         window.scrollTo({ top: 0 });
     };
 
