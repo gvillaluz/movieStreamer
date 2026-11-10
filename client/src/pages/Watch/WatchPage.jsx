@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { getEpisodesBySeason, getVideoById } from '../../services/serviceAPI';
 import { convertRuntime } from '../../utils/DurationUtils';
 import WatchPageRelated from './components/WatchPageRelated';
-import { FaExclamationTriangle, FaFilm } from 'react-icons/fa';
+import { FaExclamationTriangle, FaFilm, FaPlay } from 'react-icons/fa';
 import LoadingState from '../../components/LoadingState';
 import EmptyState from '../../components/EmptyState';
 import { SkeletonGrid } from '../../components/Skeletons';
@@ -83,6 +83,18 @@ const WatchPage = () => {
 
         getEpisodes();
     }, [season, isSeries]);
+
+    // Bring the playing episode into view inside the list (without scrolling the page)
+    useEffect(() => {
+        if (!episodes?.length) return;
+        const list = document.querySelector('.episode-container');
+        const current = list?.querySelector('.series.current');
+        if (!list || !current) return;
+        list.scrollTo({
+            top: current.offsetTop - list.offsetTop - (list.clientHeight - current.offsetHeight) / 2,
+            behavior: 'smooth',
+        });
+    }, [episodes]);
 
     const handleEpisodeClick = (selectedEpisode) => {
         setEpisode(selectedEpisode);
@@ -195,15 +207,28 @@ const WatchPage = () => {
                             message="No aired episodes were found for this season."
                         />
                     )}
-                    {episodes?.map(ep => (
+                    {episodes?.map((ep, i) => (
                         <div
-                            key={ep.episode_number}
+                            key={`${season}-${ep.episode_number}`}
                             className={`series ${ep.episode_number === episode ? 'current' : ""}`}
+                            style={{ '--i': Math.min(i, 12) }}
                             onClick={() => handleEpisodeClick(ep.episode_number)}
+                            role='button'
+                            tabIndex={0}
+                            aria-current={ep.episode_number === episode ? 'true' : undefined}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    handleEpisodeClick(ep.episode_number);
+                                }
+                            }}
                         >
-                            {ep.still_path
-                                ? <img src={`https://image.tmdb.org/t/p/w200${ep.still_path}`} className='episode-img' alt="" loading="lazy" />
-                                : <div className='episode-img placeholder' aria-hidden="true"><FaFilm /></div>}
+                            <div className='episode-thumb'>
+                                {ep.still_path
+                                    ? <img src={`https://image.tmdb.org/t/p/w200${ep.still_path}`} className='episode-img' alt="" loading="lazy" />
+                                    : <div className='episode-img placeholder' aria-hidden="true"><FaFilm /></div>}
+                                <span className='episode-play' aria-hidden="true"><FaPlay /></span>
+                            </div>
                             <div className='episode-detail'>
                                 <div className='episode-count-container'>
                                     <h4>{`E${ep.episode_number}`}</h4>

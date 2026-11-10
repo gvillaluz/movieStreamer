@@ -138,19 +138,57 @@
 .option.active { background: #e50914; }
 
 .episode-container {
+  --fade: 14px;
   display: flex;
   flex-direction: column;
-  gap: .25rem;
+  gap: .3rem;
   max-height: min(62vh, 620px);
-  padding: .35rem;
+  padding: .4rem .3rem .4rem .4rem;
   overflow-x: hidden;
   overflow-y: auto;
-  scrollbar-width: thin;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  scroll-padding-block: .4rem;
   border: 1px solid rgba(255,190,190,.12);
   border-radius: 14px;
   background: rgba(0,0,0,.18);
+  /* soft fade where the list runs off the top/bottom edge */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--fade), #000 calc(100% - var(--fade)), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 var(--fade), #000 calc(100% - var(--fade)), transparent 100%);
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,107,107,.45) transparent;
 }
+/* Chromium / Safari: slim pill thumb that brightens on hover and while dragging */
+.episode-container::-webkit-scrollbar,
+.options::-webkit-scrollbar { width: 10px; }
+.episode-container::-webkit-scrollbar-track,
+.options::-webkit-scrollbar-track { margin-block: 10px; border-radius: 999px; background: rgba(255,255,255,.04); }
+.episode-container::-webkit-scrollbar-thumb,
+.options::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,107,107,.55), rgba(229,9,20,.55)) padding-box;
+  transition: background .2s ease;
+}
+.episode-container::-webkit-scrollbar-thumb:hover,
+.options::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #ff6b6b, #e50914) padding-box; }
+.episode-container::-webkit-scrollbar-thumb:active,
+.options::-webkit-scrollbar-thumb:active { background: linear-gradient(180deg, #ff8a8a, #ff1f2c) padding-box; }
+.options { scrollbar-width: thin; scrollbar-color: rgba(255,107,107,.45) transparent; }
+
+/* Episode cards: staggered entrance (replays whenever the season changes) */
+@keyframes episode-in {
+  from { opacity: 0; transform: translateY(14px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes episode-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255,107,107,.45); }
+  100% { box-shadow: 0 0 0 10px rgba(255,107,107,0); }
+}
+
 .series {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: .75rem;
@@ -159,15 +197,73 @@
   border: 1px solid transparent;
   border-radius: 12px;
   cursor: pointer;
-  transition: background .2s ease;
+  outline: none;
+  animation: episode-in .45s cubic-bezier(.22, 1, .36, 1) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+  transition: background .25s ease, border-color .25s ease, transform .25s cubic-bezier(.22, 1, .36, 1), box-shadow .25s ease;
+  -webkit-tap-highlight-color: transparent;
 }
-.series:hover { background: linear-gradient(135deg, rgba(255,255,255,.1), rgba(229,9,20,.12)); }
-.series.current { border-color: rgba(255,107,107,.28); background: linear-gradient(135deg, rgba(229,9,20,.3), rgba(255,107,107,.1)); }
-.series .episode-img { flex: 0 0 112px; width: 112px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: rgba(255,255,255,.06); }
+/* accent bar that grows in on the playing episode */
+.series::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 0;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, #ff6b6b, #e50914);
+  transform: translateY(-50%);
+  transition: height .3s cubic-bezier(.22, 1, .36, 1);
+}
+.series:hover,
+.series:focus-visible {
+  background: linear-gradient(135deg, rgba(255,255,255,.1), rgba(229,9,20,.14));
+  transform: translateX(4px);
+}
+.series:focus-visible { border-color: rgba(255,107,107,.55); }
+.series:active { transform: translateX(4px) scale(.985); transition-duration: .1s; }
+.series.current {
+  border-color: rgba(255,107,107,.28);
+  background: linear-gradient(135deg, rgba(229,9,20,.3), rgba(255,107,107,.1));
+}
+.series.current::before { height: 60%; }
+.series.current .episode-thumb { animation: episode-pulse .7s ease-out; }
+
+.episode-thumb { position: relative; flex: 0 0 112px; width: 112px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 8px; }
+.series .episode-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: rgba(255,255,255,.06);
+  transition: transform .5s cubic-bezier(.22, 1, .36, 1), filter .3s ease;
+}
 .series .episode-img.placeholder { display: grid; place-items: center; color: var(--text-muted); }
+.series:hover .episode-img,
+.series:focus-visible .episode-img { transform: scale(1.08); filter: brightness(.7); }
+
+.episode-play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: .95rem;
+  background: radial-gradient(circle, rgba(229,9,20,.55) 0, rgba(229,9,20,0) 60%);
+  opacity: 0;
+  transform: scale(.7);
+  transition: opacity .25s ease, transform .3s cubic-bezier(.22, 1, .36, 1);
+  pointer-events: none;
+}
+.series:hover .episode-play,
+.series:focus-visible .episode-play,
+.series.current .episode-play { opacity: 1; transform: scale(1); }
+
 .series .episode-detail { flex: 1; min-width: 0; }
 .series .episode-count-container { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
-.series .episode-count-container h4 { margin: 0; font-size: .95rem; }
+.series .episode-count-container h4 { margin: 0; font-size: .95rem; transition: color .25s ease; }
+.series.current .episode-count-container h4 { color: var(--accent); }
 .series .episode-count-container p { margin: 0; color: var(--text-muted); font-size: .8rem; }
 .series .episode-overview {
   display: -webkit-box;
@@ -177,8 +273,27 @@
   font-size: .8rem;
   line-height: 1.4;
   opacity: .8;
+  transition: opacity .25s ease;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+.series:hover .episode-overview,
+.series.current .episode-overview { opacity: 1; }
+
+/* Season dropdown: animate open + smoother rows */
+@keyframes options-in {
+  from { opacity: 0; transform: translateY(-6px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+.options { transform-origin: top; animation: options-in .2s cubic-bezier(.22, 1, .36, 1); }
+.option { transition: background .2s ease, padding-left .2s ease; }
+.option:hover:not(.active) { padding-left: 1.15rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .series, .options { animation: none; }
+  .series:hover, .series:focus-visible, .series:active { transform: none; }
+  .episode-container { scroll-behavior: auto; }
+  .series.current .episode-thumb { animation: none; }
 }
 
 /* Tablet + phone: single column, episodes before "More like this" */
