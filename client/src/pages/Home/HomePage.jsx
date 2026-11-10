@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import MovieCard from "../../components/MovieCard";
 import EmptyState from "../../components/EmptyState";
 import ScrollRow from "../../components/ScrollRow";
+import ContinueCard from "../../components/ContinueCard";
+import { getContinueWatching, removeEntry } from "../../utils/watchHistory";
 import { HomeSkeleton, SkeletonGrid } from "../../components/Skeletons";
 import { loadHomeContent } from "../../services/serviceAPI";
 import { SearchContext } from "../../context/searchContext";
@@ -30,6 +32,13 @@ const HomePage = () => {
     const [error, setError] = useState("");
     const [heroIndex, setHeroIndex] = useState(0);
     const [heroPaused, setHeroPaused] = useState(false);
+    // Titles the viewer started but didn't finish (kept in localStorage by the watch page)
+    const [continueWatching, setContinueWatching] = useState(getContinueWatching);
+
+    const removeFromContinue = (entry) => {
+        removeEntry(entry.id, entry.category);
+        setContinueWatching(getContinueWatching());
+    };
 
     const heroSlides = useMemo(
         () => (feed?.trending || []).filter((item) => heroImage(item) && (item.title || item.name)).slice(0, HERO_SLIDES),
@@ -187,6 +196,21 @@ const HomePage = () => {
                 </section>
             )}
             <div className="home-content">
+                {continueWatching.length > 0 && (
+                    <section className="home-section">
+                        <div className="section-heading">
+                            <div>
+                                <span className="eyebrow">Pick up where you left off</span>
+                                <h2>Continue watching</h2>
+                            </div>
+                        </div>
+                        <ScrollRow label="Continue watching">
+                            {continueWatching.map((entry) => (
+                                <ContinueCard key={`${entry.category}-${entry.id}`} entry={entry} onRemove={removeFromContinue} />
+                            ))}
+                        </ScrollRow>
+                    </section>
+                )}
                 {SECTIONS.map(renderSection)}
             </div>
         </main>
