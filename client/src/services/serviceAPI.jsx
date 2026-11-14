@@ -15,27 +15,21 @@ const request = async (path, params = {}) => {
     return response.data;
 };
 
-export const loadMovies = async () => {
-    try {
-        const pages = await Promise.all([
-            request("/movie/popular", { page: 1 }),
-            request("/movie/popular", { page: 2 }),
-        ]);
-        return pages.flatMap((page) => page.results);
-    } catch {
-        throw new Error("Unable to load movies right now.");
-    }
-};
+/**
+ * One TMDB page (20 titles) of popular movies/series, or of search results when `query` is set.
+ * `type` is "movies" or "series".
+ */
+export const loadContentPage = async ({ type, query = "", page = 1 }) => {
+    const kind = type === "series" ? "tv" : "movie";
+    const path = query ? `/search/${kind}` : `/${kind}/popular`;
 
-export const loadSeries = async () => {
     try {
-        const pages = await Promise.all([
-            request("/tv/popular", { page: 1 }),
-            request("/tv/popular", { page: 2 }),
-        ]);
-        return pages.flatMap((page) => page.results);
+        const data = await request(path, query ? { query, include_adult: false, page } : { page });
+        return { results: data.results || [], totalPages: data.total_pages || 0 };
     } catch {
-        throw new Error("Unable to load series right now.");
+        throw new Error(query
+            ? "Search is unavailable right now."
+            : `Unable to load ${type === "series" ? "series" : "movies"} right now.`);
     }
 };
 

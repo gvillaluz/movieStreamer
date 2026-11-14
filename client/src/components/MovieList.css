@@ -50,3 +50,26 @@
 }
 .list-heading h2 { margin: 0; font-size: clamp(1.2rem, 2.6vw, 1.7rem); letter-spacing: -.05em; }
 .list-count { color: var(--text-muted); font-size: .85rem; }
+
+/* Infinite scroll: what sits under the grid while more titles load */
+.list-footer { display: grid; gap: 1.25rem; margin-top: var(--list-gap, 1.25rem); padding-bottom: 2rem; }
+.list-footer .movie-list { margin: 0; }
+.list-sentinel { height: 1px; }
+.list-end,
+.list-load-error {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: .85rem;
+  text-align: center;
+}
+.list-load-error { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: .4rem .9rem; }
+.list-retry {
+  padding: .45rem .8rem;
+  color: #ffe8e8;
+  font-weight: 700;
+  border: 1px solid rgba(255, 190, 190, .2);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(255,255,255,.12), rgba(229,9,20,.15));
+  transition: border-color .2s, background .2s;
+}
+.list-retry:hover { border-color: rgba(255, 107, 107, .6); background: linear-gradient(135deg, rgba(255,255,255,.16), rgba(229,9,20,.3)); }

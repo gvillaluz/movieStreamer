@@ -1,6 +1,5 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { search, loadMovies, loadSeries } from "../services/serviceAPI";
 import { useAppNavigation } from "../hooks/useAppNavigation";
 
 export const SearchContext = createContext();
@@ -13,7 +12,6 @@ export function SearchProvider({ children }) {
     const navigate = useNavigate();
     const { go } = useAppNavigation();
     const [searchQuery, setSearchQuery] = useState("");
-    const [contents, setContent] = useState([]);
     // Read saved favorites up front. Loading them in an effect lets the "save" effect
     // overwrite storage with [] first (StrictMode runs effects twice in dev).
     const [favorites, setFavorites] = useState(() => {
@@ -24,9 +22,9 @@ export function SearchProvider({ children }) {
             return [];
         }
     });
-    const [searchResults, setSearchResults] = useState("");
-    const [isSearching, setIsSearching] = useState(false);
-    const [error, setError] = useState("");
+    // A search made on Movies or TV Series, tagged with that page so it never leaks into the other one
+    const [listSearch, setListSearch] = useState({ path: "", query: "" });
+    const clearListSearch = useCallback(() => setListSearch({ path: "", query: "" }), []);
 
     useEffect(() => {
         localStorage.setItem("favorites", JSON.stringify(favorites));
@@ -41,7 +39,7 @@ export function SearchProvider({ children }) {
         });
     }
 
-    const handleSearch = async (e) => {
+    const handleSearch = (e) => {
         e.preventDefault();
         const query = searchQuery.trim();
         if (!query) return;
@@ -57,44 +55,18 @@ export function SearchProvider({ children }) {
             return;
         }
 
-        setIsSearching(true);
-        setError("");
-        try {
-            const data = await search(query, location.pathname);
-            setContent(data);
-            setSearchResults(query);
-        } catch (err) {
-            setError(err.message);
-            setContent([]);
-        } finally {
-            setIsSearching(false);
-        }
-    }
-
-    const response = async (type) => {
-        setContent([]);
-        setError("");
-        try {
-            const data = type === "series" ? await loadSeries() : await loadMovies();
-            setContent(data);
-        } catch (err) {
-            setError(err.message);
-        }
+        // The list on this page does its own (paged) fetching for the query
+        setListSearch({ path: location.pathname, query });
     }
 
     const value = {
-        searchQuery, 
-        contents,
+        searchQuery,
         setSearchQuery,
-        response,
         handleSearch,
         favorites,
         addToFavorites,
-        searchResults,
-        setSearchResults,
-        isSearching,
-        error,
-        setError
+        listSearch,
+        clearListSearch,
     }
 
     return  (
