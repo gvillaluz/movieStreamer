@@ -1,22 +1,60 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { FaArrowRight, FaFilm, FaPlay, FaExclamationTriangle } from "react-icons/fa";
 import { useAppNavigation } from "../../hooks/useAppNavigation";
 import MovieCard from "../../components/MovieCard";
 import EmptyState from "../../components/EmptyState";
 import ScrollRow from "../../components/ScrollRow";
 import ContinueCard from "../../components/ContinueCard";
-import { getContinueWatching, removeEntry } from "../../utils/watchHistory";
+import RecommendationRow from "./components/RecommendationRow";
+import { getContinueWatching, getRecentlyWatched, removeEntry } from "../../utils/watchHistory";
 import { HomeSkeleton } from "../../components/Skeletons";
 import { loadHomeContent } from "../../services/serviceAPI";
+import { SearchContext } from "../../context/searchContext";
 import "./HomePage.css";
 
+/*
+ * Row order. `personal: n` is a slot for the viewer's nth recommendation row ("Since you watched",
+ * "More like" a favorite); slots with no history behind them are skipped. `to` adds an Explore link
+ * only where a list page really shows more of the same.
+ */
 const SECTIONS = [
+    { personal: 0 },
     { key: "trending", title: "Trending now", eyebrow: "Your next favorite", to: "/movie" },
     { key: "newMovies", title: "New movies", eyebrow: "Fresh from theaters", to: "/movie" },
+    { key: "kdramas", title: "Korean dramas", eyebrow: "K-drama picks" },
+    { personal: 1 },
     { key: "newSeries", title: "New TV series", eyebrow: "Now on the air", to: "/series" },
     { key: "popularMovies", title: "Popular movies", eyebrow: "Most watched", to: "/movie" },
+    { key: "anime", title: "Anime", eyebrow: "Straight from Japan" },
+    { personal: 2 },
+    { key: "topRatedMovies", title: "Top rated movies", eyebrow: "All-time greats" },
     { key: "popularSeries", title: "Popular series", eyebrow: "Binge-worthy", to: "/series" },
+    { key: "actionMovies", title: "Action & adventure", eyebrow: "Edge of your seat" },
+    { key: "comedyMovies", title: "Comedy", eyebrow: "Feel-good laughs" },
+    { key: "horrorMovies", title: "Horror", eyebrow: "Lights off" },
+    { key: "comingSoon", title: "Coming soon", eyebrow: "Mark your calendar" },
 ];
+
+const MAX_WATCHED_ROWS = 2;
+
+/** Titles to base recommendation rows on: the latest things watched, then the newest favorite not already used. */
+const getPersonalSeeds = (favorites) => {
+    const seeds = getRecentlyWatched()
+        .slice(0, MAX_WATCHED_ROWS)
+        .map(({ id, category, title }) => ({ id, category, title, reason: "watched" }));
+
+    const favorite = [...favorites].reverse().find((fav) => !seeds.some((seed) => String(seed.id) === String(fav.id)));
+    if (favorite && (favorite.title || favorite.name)) {
+        seeds.push({
+            id: favorite.id,
+            // Older favorites were saved without media_type; series have `name`, movies `title`
+            category: favorite.media_type || (favorite.name && !favorite.title ? "tv" : "movie"),
+            title: favorite.title || favorite.name,
+            reason: "favorite",
+        });
+    }
+    return seeds;
+};
 
 const HERO_SLIDES = 6;
 const HERO_INTERVAL = 8000;
@@ -26,12 +64,16 @@ const hasPoster = (content) => Boolean(content?.poster_path && (content.title ||
 
 const HomePage = () => {
     const { go } = useAppNavigation();
+    const { favorites } = useContext(SearchContext);
     const [feed, setFeed] = useState(null);
     const [error, setError] = useState("");
     const [heroIndex, setHeroIndex] = useState(0);
     const [heroPaused, setHeroPaused] = useState(false);
     // Titles the viewer started but didn't finish (kept in localStorage by the watch page)
     const [continueWatching, setContinueWatching] = useState(getContinueWatching);
+
+    // Picked once per visit, so rows don't reshuffle when a favorite is toggled elsewhere
+    const [personalSeeds] = useState(() => getPersonalSeeds(favorites));
 
     const removeFromContinue = (entry) => {
         removeEntry(entry.id, entry.category);
@@ -84,7 +126,11 @@ const HomePage = () => {
     const featuredTitle = featured?.title || featured?.name;
     const featuredType = featured?.media_type === "tv" ? "series" : "movie";
 
-    const renderSection = ({ key, title, eyebrow, to }) => {
+    const renderSection = ({ personal, key, title, eyebrow, to }) => {
+        if (personal !== undefined) {
+            const seed = personalSeeds[personal];
+            return seed ? <RecommendationRow key={`${seed.category}-${seed.id}`} seed={seed} /> : null;
+        }
         const items = (feed[key] || []).filter(hasPoster).slice(0, 20);
         return (
             <section className="home-section" key={key}>
@@ -93,9 +139,11 @@ const HomePage = () => {
                         <span className="eyebrow">{eyebrow}</span>
                         <h2>{title}</h2>
                     </div>
-                    <button className="text-button" onClick={() => go(to)}>
-                        Explore <FaArrowRight />
-                    </button>
+                    {to && (
+                        <button className="text-button" onClick={() => go(to)}>
+                            Explore <FaArrowRight />
+                        </button>
+                    )}
                 </div>
                 {items.length ? (
                     <ScrollRow label={title}>

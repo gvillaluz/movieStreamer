@@ -8,26 +8,32 @@
 
 const STORAGE_KEY = "continue_watching";
 const MAX_ENTRIES = 20;
+// Every title played, finished or not, for the home page's "Since you watched" rows
+const LOG_KEY = "watch_log";
+const MAX_LOG = 10;
 const MIN_SECONDS = 10;      // ignore the first few seconds: probably an accidental click
 const FINISHED_RATIO = 0.95; // past this the title counts as watched
 
 // Embed origins we trust progress events from
 export const PLAYER_ORIGINS = ["https://vidlink.pro", "https://vidfast.vc", "https://vidfast.pro", "https://vsembed.ru"];
 
-const read = () => {
+const readList = (key) => {
     try {
-        const list = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        const list = JSON.parse(localStorage.getItem(key));
         return Array.isArray(list) ? list : [];
     } catch {
         return [];
     }
 };
 
-const write = (list) => {
+const writeList = (key, list, max) => {
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, MAX_ENTRIES)));
-    } catch { /* storage full or unavailable: progress just isn't saved */ }
+        localStorage.setItem(key, JSON.stringify(list.slice(0, max)));
+    } catch { /* storage full or unavailable: history just isn't saved */ }
 };
+
+const read = () => readList(STORAGE_KEY);
+const write = (list) => writeList(STORAGE_KEY, list, MAX_ENTRIES);
 
 const sameTitle = (entry, id, category) => String(entry.id) === String(id) && entry.category === category;
 
@@ -41,15 +47,34 @@ export const getEntry = (id, category) => read().find((e) => sameTitle(e, id, ca
 
 export const removeEntry = (id, category) => write(read().filter((e) => !sameTitle(e, id, category)));
 
+const logWatched = ({ id, category, title, poster_path }) => {
+    const entry = { id, category, title, poster_path, updatedAt: Date.now() };
+    writeList(LOG_KEY, [entry, ...readList(LOG_KEY).filter((e) => !sameTitle(e, id, category))], MAX_LOG);
+};
+
+/** Titles played recently, finished or not, newest first (one entry per title). */
+export const getRecentlyWatched = () => {
+    const byTitle = new Map();
+    for (const e of [...readList(LOG_KEY), ...read()]) {
+        if (!e?.id || !e.category || !e.title) continue;
+        const key = `${e.category}-${e.id}`;
+        if (!byTitle.has(key) || byTitle.get(key).updatedAt < e.updatedAt) byTitle.set(key, e);
+    }
+    return [...byTitle.values()].sort((a, b) => b.updatedAt - a.updatedAt);
+};
+
 /** Save (or drop, if finished) the playback position of a title. */
 export const recordProgress = ({ id, category, title, poster_path, season, episode, time, duration, ended }) => {
     if (!id || !(duration > 0) || !(time >= 0)) return;
 
-    if (ended || time / duration >= FINISHED_RATIO) {
+    const finished = ended || time / duration >= FINISHED_RATIO;
+    if (!finished && time < MIN_SECONDS) return;
+
+    logWatched({ id, category, title, poster_path });
+    if (finished) {
         removeEntry(id, category);
         return;
     }
-    if (time < MIN_SECONDS) return;
 
     const entry = {
         id,

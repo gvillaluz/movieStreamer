@@ -52,26 +52,42 @@ export const search = async (searchQuery, pathname) => {
     }
 };
 
-export const loadHomeContent = async () => {
-    try {
-        const [trending, newMovies, newSeries, popularMovies, popularSeries] = await Promise.all([
-            request("/trending/all/week"),
-            request("/movie/now_playing", { page: 1 }),
-            request("/tv/on_the_air", { page: 1 }),
-            request("/movie/popular", { page: 1 }),
-            request("/tv/popular", { page: 1 }),
-        ]);
+const today = () => new Date().toISOString().slice(0, 10);
+const NOT_TALK_OR_REALITY = "10764,10767"; // keep variety and talk shows out of the drama/anime rows
 
-        return {
-            trending: trending.results.filter((item) => item.media_type !== "person"),
-            newMovies: newMovies.results,
-            newSeries: newSeries.results,
-            popularMovies: popularMovies.results,
-            popularSeries: popularSeries.results,
-        };
-    } catch {
-        throw new Error("Unable to load the home feed right now.");
-    }
+/** Home rows: key -> [TMDB path, params]. Each is one page (20 titles). */
+const homeRows = () => ({
+    newMovies: ["/movie/now_playing"],
+    newSeries: ["/tv/on_the_air"],
+    kdramas: ["/discover/tv", { with_original_language: "ko", with_genres: "18", without_genres: NOT_TALK_OR_REALITY, sort_by: "popularity.desc", "vote_count.gte": 20 }],
+    popularMovies: ["/movie/popular"],
+    anime: ["/discover/tv", { with_original_language: "ja", with_genres: "16", without_genres: NOT_TALK_OR_REALITY, sort_by: "popularity.desc", "vote_count.gte": 20 }],
+    topRatedMovies: ["/movie/top_rated"],
+    popularSeries: ["/tv/popular"],
+    actionMovies: ["/discover/movie", { with_genres: "28", sort_by: "popularity.desc", "vote_count.gte": 200 }],
+    comedyMovies: ["/discover/movie", { with_genres: "35", sort_by: "popularity.desc", "vote_count.gte": 200 }],
+    horrorMovies: ["/discover/movie", { with_genres: "27", sort_by: "popularity.desc", "vote_count.gte": 100 }],
+    comingSoon: ["/discover/movie", { "primary_release_date.gte": today(), sort_by: "popularity.desc", with_release_type: "2|3" }],
+});
+
+/**
+ * Everything the home page shows. Trending feeds the hero, so the page can't load without it;
+ * any other row that fails just comes back empty.
+ */
+export const loadHomeContent = async () => {
+    const rows = Object.entries(homeRows());
+    const [trending, ...results] = await Promise.allSettled([
+        request("/trending/all/week"),
+        ...rows.map(([, [path, params]]) => request(path, { page: 1, ...params })),
+    ]);
+
+    if (trending.status === "rejected") throw new Error("Unable to load the home feed right now.");
+
+    const feed = { trending: trending.value.results.filter((item) => item.media_type !== "person") };
+    rows.forEach(([key], i) => {
+        feed[key] = results[i].status === "fulfilled" ? results[i].value.results ?? [] : [];
+    });
+    return feed;
 };
 
 export const searchById = async (id, category) => {
