@@ -1,11 +1,13 @@
 import { useContext } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { SearchContext } from "../../../context/searchContext";
+import { isComingSoon } from "../../../utils/releaseStatus";
 
 const Details = ({content, category, handleWatchNow}) =>  {
     const { favorites, addToFavorites } = useContext(SearchContext);
     const isFavorite = favorites.some(fav => fav.id === content.id);
     const name = content.title ? content.title : content.name;
+    const comingSoon = isComingSoon(content);
 
     // Keep only what a card needs, so the saved list stays small
     const toggleFavorite = () => addToFavorites({
@@ -38,7 +40,7 @@ const Details = ({content, category, handleWatchNow}) =>  {
                 <div className="text-container">
                     <h2 className="title desktop">{content.title ? content.title : content.name}</h2>
                     {content.tagline && <p><strong>Tag Line:  </strong>{content.tagline}</p>}
-                    <p><strong>{content.release_date ? "Release Date: " : "First Air Date: "}</strong>{content.release_date ? content.release_date : content.first_air_date}</p>
+                    <p><strong>{content.release_date ? "Release Date: " : "First Air Date: "}</strong>{(content.release_date || content.first_air_date) || "TBA"}</p>
                     {!content.seasons ? (
                         <p><strong>Run Time: </strong> {content.runtime} minutes</p>
                     ) : (
@@ -53,12 +55,15 @@ const Details = ({content, category, handleWatchNow}) =>  {
                     <p className="overview-text">{content.overview}</p>
                     <p> ⭐ {content.vote_average} ({content.vote_count} votes)</p>
                     <div className="detail-actions">
-                        <button
-                            className="watch-btn"
-                            onClick={handleWatchNow}
-                        >
-                            {progress ? `▶ Continue S${progress.season} E${progress.episode}` : "▶ Watch now"}
-                        </button>
+                        {comingSoon ? (
+                            <button type="button" className="watch-btn coming-soon" disabled aria-disabled="true">
+                                Coming soon
+                            </button>
+                        ) : (
+                            <button type="button" className="watch-btn" onClick={handleWatchNow}>
+                                {progress ? `▶ Continue S${progress.season} E${progress.episode}` : "▶ Watch now"}
+                            </button>
+                        )}
                         <button
                             type="button"
                             className={`fav-btn${isFavorite ? " active" : ""}`}
