@@ -1,15 +1,13 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { FaArrowRight, FaFilm, FaPlay, FaSearch, FaExclamationTriangle } from "react-icons/fa";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { FaArrowRight, FaFilm, FaPlay, FaExclamationTriangle } from "react-icons/fa";
 import { useAppNavigation } from "../../hooks/useAppNavigation";
-import PageBackButton from "../../components/PageBackButton";
 import MovieCard from "../../components/MovieCard";
 import EmptyState from "../../components/EmptyState";
 import ScrollRow from "../../components/ScrollRow";
 import ContinueCard from "../../components/ContinueCard";
 import { getContinueWatching, removeEntry } from "../../utils/watchHistory";
-import { HomeSkeleton, SkeletonGrid } from "../../components/Skeletons";
+import { HomeSkeleton } from "../../components/Skeletons";
 import { loadHomeContent } from "../../services/serviceAPI";
-import { SearchContext } from "../../context/searchContext";
 import "./HomePage.css";
 
 const SECTIONS = [
@@ -27,8 +25,7 @@ const heroImage = (item) => item.backdrop_path || item.poster_path;
 const hasPoster = (content) => Boolean(content?.poster_path && (content.title || content.name));
 
 const HomePage = () => {
-    const { go, canGoBack } = useAppNavigation();
-    const { contents, searchResults, isSearching } = useContext(SearchContext);
+    const { go } = useAppNavigation();
     const [feed, setFeed] = useState(null);
     const [error, setError] = useState("");
     const [heroIndex, setHeroIndex] = useState(0);
@@ -81,35 +78,6 @@ const HomePage = () => {
 
     if (!feed) {
         return <HomeSkeleton label="Curating your watchlist..." />;
-    }
-
-    if (searchResults || isSearching) {
-        const searchItems = Array.from(new Map(contents.map((content) => [content.id, content])).values()).filter(hasPoster);
-        return (
-            <main className="page-content home-search-results">
-                {/* Only when the search was started from another page (e.g. a title), so Back returns there */}
-                {canGoBack && <PageBackButton />}
-                <div className="section-heading">
-                    <div>
-                        <span className="eyebrow">Search library</span>
-                        <h1>{isSearching ? "Finding your next watch..." : `Results for "${searchResults}"`}</h1>
-                    </div>
-                </div>
-                {isSearching ? (
-                    <SkeletonGrid count={12} label="Searching the library..." />
-                ) : searchItems.length ? (
-                    <div className="movie-list">
-                        {searchItems.map((content) => <MovieCard key={content.id} content={content} />)}
-                    </div>
-                ) : (
-                    <EmptyState
-                        icon={<FaSearch />}
-                        title="No titles found"
-                        message="Try a different title, actor, or series."
-                    />
-                )}
-            </main>
-        );
     }
 
     const featured = heroSlides[heroIndex];

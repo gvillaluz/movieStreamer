@@ -8,6 +8,7 @@ import FavoritesPage from './pages/Favorites/FavoritesPage'
 import { SearchContext, SearchProvider } from './context/searchContext'
 import DescriptionPage from './pages/Description/DescriptionPage'
 import WatchPage from './pages/Watch/WatchPage'
+import SearchPage from './pages/Search/SearchPage'
 
 function App() {
   const location = useLocation();
@@ -21,6 +22,7 @@ function App() {
           <Route path='/movie' element={<MoviePage />} />
           <Route path='/series' element={<TvSeriesPage />} />
           <Route path='/favorites' element={<FavoritesPage />} />
+          <Route path='/search' element={<SearchPage />} />
           <Route path="*" element={<HomePage />} />
           <Route path="/:category/:id/:content" element={<DescriptionPage />} />
           <Route path='/watch/:category/:id' element={<WatchPage />} />

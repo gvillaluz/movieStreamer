@@ -1,17 +1,17 @@
-import { createContext, useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { search, loadMovies, loadSeries } from "../services/serviceAPI";
+import { createContext, useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAppNavigation } from "../hooks/useAppNavigation";
 
 export const SearchContext = createContext();
 
-const RESULT_PAGES = ["/", "/movie", "/series"];
+// Movies and TV Series filter their own list in place; every other page sends the query to /search.
+const IN_PLACE_PAGES = ["/movie", "/series"];
 
 export function SearchProvider({ children }) {
     const location = useLocation();
+    const navigate = useNavigate();
     const { go } = useAppNavigation();
     const [searchQuery, setSearchQuery] = useState("");
-    const [contents, setContent] = useState([]);
     // Read saved favorites up front. Loading them in an effect lets the "save" effect
     // overwrite storage with [] first (StrictMode runs effects twice in dev).
     const [favorites, setFavorites] = useState(() => {
@@ -22,9 +22,9 @@ export function SearchProvider({ children }) {
             return [];
         }
     });
-    const [searchResults, setSearchResults] = useState("");
-    const [isSearching, setIsSearching] = useState(false);
-    const [error, setError] = useState("");
+    // A search made on Movies or TV Series, tagged with that page so it never leaks into the other one
+    const [listSearch, setListSearch] = useState({ path: "", query: "" });
+    const clearListSearch = useCallback(() => setListSearch({ path: "", query: "" }), []);
 
     useEffect(() => {
         localStorage.setItem("favorites", JSON.stringify(favorites));
@@ -39,53 +39,34 @@ export function SearchProvider({ children }) {
         });
     }
 
-    const handleSearch = async (e) => {
+    const handleSearch = (e) => {
         e.preventDefault();
         const query = searchQuery.trim();
         if (!query) return;
 
-        // Only these pages list search results. From anywhere else (a title's details, favorites) the
-        // results are shown on Home, and Back there returns to the page the search was started from.
-        if (!RESULT_PAGES.includes(location.pathname)) go("/");
-
-        setIsSearching(true);
-        setError("");
-        try {
-            const data = await search(query, location.pathname);
-            setContent(data);
-            setSearchResults(query);
-        } catch (err) {
-            setError(err.message);
-            setContent([]);
-        } finally {
-            setIsSearching(false);
+        if (!IN_PLACE_PAGES.includes(location.pathname)) {
+            const to = `/search?q=${encodeURIComponent(query)}`;
+            if (location.pathname === "/search") {
+                // A new search from the results page replaces it, keeping the trail Back follows
+                navigate(to, { replace: true, state: location.state });
+            } else {
+                go(to);
+            }
+            return;
         }
-    }
 
-    const response = async (type) => {
-        setContent([]);
-        setError("");
-        try {
-            const data = type === "series" ? await loadSeries() : await loadMovies();
-            setContent(data);
-        } catch (err) {
-            setError(err.message);
-        }
+        // The list on this page does its own (paged) fetching for the query
+        setListSearch({ path: location.pathname, query });
     }
 
     const value = {
-        searchQuery, 
-        contents,
+        searchQuery,
         setSearchQuery,
-        response,
         handleSearch,
         favorites,
         addToFavorites,
-        searchResults,
-        setSearchResults,
-        isSearching,
-        error,
-        setError
+        listSearch,
+        clearListSearch,
     }
 
     return  (
