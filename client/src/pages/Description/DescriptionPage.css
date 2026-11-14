@@ -45,6 +45,15 @@
     background-color: rgba(185, 1, 1, 0.652);
 }
 
+/* Not released yet: looks like the Watch button but muted and unclickable */
+.watch-btn.coming-soon,
+.watch-btn.coming-soon:hover {
+    color: rgba(255, 232, 232, .7);
+    background: linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+    border: 1px dashed rgba(255, 190, 190, .3);
+    cursor: not-allowed;
+}
+
 
 .detail-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
 .fav-btn {

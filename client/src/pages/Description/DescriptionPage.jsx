@@ -4,6 +4,7 @@ import { searchById } from "../../services/serviceAPI";
 import { useLocation, useParams } from "react-router-dom";
 import { useAppNavigation } from "../../hooks/useAppNavigation";
 import Details from './components/Details'
+import { isComingSoon } from "../../utils/releaseStatus";
 import Trailer from "./components/Trailer";
 import './DescriptionPage.css'
 import RelatedContent from "./components/RelatedContent";
@@ -39,6 +40,7 @@ const DescriptionPage = () => {
     useEffect(() => { load(); }, [load]);
 
     const handleWatchNow = () => {
+        if (isComingSoon(content.data)) return;
         go(`/watch/${category}/${content.data.id}`);
     }
 

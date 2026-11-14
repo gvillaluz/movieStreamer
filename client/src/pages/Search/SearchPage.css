@@ -1,5 +1,6 @@
 /* Same gutters as the other list pages, with room around the grid */
 .search-page { padding-top: clamp(1rem, 3vw, 2rem); padding-bottom: 3rem; text-align: left; }
+.search-page > .page-back-button { margin-bottom: clamp(1rem, 2.5vw, 1.5rem); }
 .search-page .section-heading { margin-bottom: clamp(1.25rem, 3vw, 2rem); }
 .search-page .section-heading h1 {
   margin: 0;
