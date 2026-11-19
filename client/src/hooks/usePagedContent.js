@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { loadContentPage } from "../services/serviceAPI";
+import { isComingSoon } from "../utils/releaseStatus";
+import { matchesGenre } from "../utils/filters";
 
 const TMDB_PAGE_SIZE = 20;
 const TMDB_MAX_PAGE = 500; // TMDB refuses page numbers above this
@@ -24,9 +26,9 @@ const newCursor = () => ({
 /**
  * Popular movies/series, or search results for `query`, released `batchSize` titles at a time.
  * TMDB only serves fixed pages of 20, so each call to loadMore fetches as many pages as it needs to fill
- * a batch and keeps any surplus for the next one. Changing `type` or `query` starts the list over.
+ * a batch and keeps any surplus for the next one. Changing `type`, `query`, `genre` or `sort` starts the list over.
  */
-export const usePagedContent = ({ type, query = "", batchSize = 50 }) => {
+export const usePagedContent = ({ type, query = "", genre = "", sort = "", batchSize = 50 }) => {
     const [items, setItems] = useState([]);
     const [status, setStatus] = useState("loading"); // "loading" | "loadingMore" | "idle"
     const [error, setError] = useState("");
@@ -51,14 +53,17 @@ export const usePagedContent = ({ type, query = "", batchSize = 50 }) => {
                 const pages = [];
                 for (let page = c.nextPage; page <= last; page++) pages.push(page);
 
-                const responses = await Promise.all(pages.map((page) => loadContentPage({ type, query, page })));
+                const responses = await Promise.all(pages.map((page) => loadContentPage({ type, query, genre, sort, page })));
                 if (!isCurrent()) return;
 
                 c.nextPage = last + 1;
                 c.totalPages = Math.min(TMDB_MAX_PAGE, responses[responses.length - 1].totalPages);
                 for (const { results } of responses) {
                     for (const item of results) {
-                        if (isListable(item) && !c.seen.has(item.id)) {
+                        // Search can find unreleased titles; the browse list leaves them to the Coming soon row
+                        // TMDB search ignores genre, so it's checked here too
+                        const hidden = (!query && isComingSoon(item)) || !matchesGenre(item, genre);
+                        if (isListable(item) && !hidden && !c.seen.has(item.id)) {
                             c.seen.add(item.id);
                             c.buffer.push(item);
                         }
@@ -79,7 +84,7 @@ export const usePagedContent = ({ type, query = "", batchSize = 50 }) => {
                 setStatus("idle");
             }
         }
-    }, [type, query, batchSize]);
+    }, [type, query, genre, sort, batchSize]);
 
     // New type or query (or a reload): throw the old list away and load the first batch
     useEffect(() => {

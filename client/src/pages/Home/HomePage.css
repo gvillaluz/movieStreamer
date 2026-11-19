@@ -74,14 +74,14 @@
   z-index: 3;
   max-width: 680px;
   text-align: left;
-  will-change: transform, opacity;
+  will-change: opacity;
   animation: hero-copy-scroll linear both;
   animation-timeline: scroll(root block);
   animation-range: 0 70vh;
 }
 
 .hero-slide { animation: hero-slide-in .7s ease both; }
-@keyframes hero-slide-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes hero-slide-in { from { opacity: 0; } to { opacity: 1; } }
 
 .hero-dots { display: flex; gap: .2rem; margin-top: 1.25rem; }
 .hero-dot {
@@ -106,16 +106,6 @@
 }
 .hero-dot:hover::after { background: rgba(255,255,255,.75); }
 .hero-dot.active::after { width: 24px; background: var(--accent); }
-
-.eyebrow {
-  display: block;
-  margin-bottom: .8rem;
-  color: var(--accent);
-  font-size: .73rem;
-  font-weight: 700;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-}
 
 .hero h1 {
   max-width: 560px;
@@ -163,65 +153,11 @@
   padding: clamp(3rem, 7vw, 5rem) clamp(1rem, 4vw, 4rem) 5rem;
 }
 
-.home-section,
-.home-content > .section-heading {
-  position: relative;
-  z-index: 1;
-  min-width: 0;
-}
-.section-heading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.35rem;
-  text-align: left;
-}
-.section-heading h2 { margin: 0; font-size: clamp(1.45rem, 3vw, 2.15rem); letter-spacing: -.06em; text-wrap: balance; }
-.section-heading .eyebrow { margin-bottom: .35rem; }
-.text-button {
-  display: inline-flex;
-  align-items: center;
-  gap: .55rem;
-  padding: .55rem .1rem;
-  color: var(--text-soft);
-  border: 0;
-  background: transparent;
-  transition: color .2s, gap .2s;
-}
-.text-button:hover { gap: .8rem; color: #fff; }
-.home-page .home-grid {
-  display: flex;
-  flex-wrap: nowrap !important;
-  grid-template-columns: none;
-  gap: 1.15rem;
-  width: 100%;
-  min-width: 0;
-  max-width: none;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: .35rem .2rem 1.15rem;
-  scroll-snap-type: x proximity;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.home-page .home-grid .movie-card {
-  flex: 0 0 clamp(150px, 14vw, 210px);
-  width: clamp(150px, 14vw, 210px);
-  min-width: clamp(150px, 14vw, 210px);
-  scroll-snap-align: start;
-}
-.home-grid::-webkit-scrollbar { display: none; }
 
+/* The hero text just fades out as the page scrolls */
 @keyframes hero-copy-scroll {
-  from {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    opacity: 0;
-    transform: translate3d(-38vw, -1rem, 0);
-  }
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 @supports not (animation-timeline: scroll()) {
@@ -230,27 +166,21 @@
   .hero-backdrop { animation: none; filter: brightness(.7); }
 }
 
-@media (max-width: 1100px) {
-  .home-page .home-grid .movie-card { flex-basis: 180px; min-width: 180px; width: 180px; }
-}
-
 @media (max-width: 700px) {
   .hero { background-position: 63% center; }
   .hero h1 { font-size: clamp(2.5rem, 12vw, 4rem); }
   .home-content { gap: 3rem; margin-top: 0; padding-top: 3rem; }
-  .home-page .home-grid .movie-card { flex-basis: 132px; min-width: 132px; width: 132px; }
 }
 
 @media (max-width: 480px) {
   .hero { padding: 1.25rem 1rem 5.5rem; }
   .hero p { line-height: 1.5; }
-  .home-page .home-grid .movie-card { flex-basis: 124px; min-width: 124px; width: 124px; }
-  .section-heading { align-items: start; }
-  .section-heading h2 { font-size: 1.4rem; }
-  .text-button { font-size: .8rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-copy, .hero-slide { animation: none; }
   .hero-backdrop { animation: none; filter: brightness(.7); }
 }
+
+/* All / Movies / Series sits close to the first row rather than a full row gap away */
+.home-content > .media-toggle { margin-bottom: clamp(-3rem, -4vw, -2rem); }

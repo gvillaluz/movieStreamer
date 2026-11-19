@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { getSimilarContent } from "../services/serviceAPI";
+import { isComingSoon } from "../utils/releaseStatus";
 
 /**
  * Loads recommendations for a title.
  * Returns { items, loading, error, retry } where items are de-duplicated,
- * exclude the title itself, and always have a poster and a name.
+ * exclude the title itself and unreleased titles, and always have a poster and a name.
  */
 const useSimilarContent = (category, id) => {
     const [state, setState] = useState({ items: [], loading: true, error: false });
@@ -17,7 +18,8 @@ const useSimilarContent = (category, id) => {
             const items = unique.filter((con) =>
                 con.id !== Number(id) &&
                 con.poster_path &&
-                (con.title || con.name)
+                (con.title || con.name) &&
+                !isComingSoon(con)
             );
             setState({ items, loading: false, error: false });
         } catch {

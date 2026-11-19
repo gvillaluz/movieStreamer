@@ -10,6 +10,16 @@ const SkeletonCard = () => (
     </div>
 );
 
+const SkeletonRows = ({ count }) => Array.from({ length: count }, (_, row) => (
+    <div key={row}>
+        <div className="skeleton skeleton-line tiny" />
+        <div className="skeleton skeleton-heading" />
+        <div className="skeleton-row">
+            {Array.from({ length: 8 }, (_, i) => <SkeletonCard key={i} />)}
+        </div>
+    </div>
+));
+
 /** A grid/row of placeholder cards. `className` lets it reuse the host list's layout. */
 export const SkeletonGrid = ({ count = 12, className = "movie-list", label = "Loading..." }) => (
     <div className={className} role="status" aria-busy="true" aria-live="polite">
@@ -52,16 +62,18 @@ export const HomeSkeleton = ({ label = "Loading..." }) => (
                 <div className="skeleton skeleton-button pill" />
             </div>
         </section>
-        <div className="home-skeleton-rows" aria-hidden="true">
-            {[0, 1].map((row) => (
-                <div key={row}>
-                    <div className="skeleton skeleton-line tiny" />
-                    <div className="skeleton skeleton-heading" />
-                    <div className="skeleton-row">
-                        {Array.from({ length: 8 }, (_, i) => <SkeletonCard key={i} />)}
-                    </div>
-                </div>
-            ))}
+        <div className="home-skeleton-rows rows-skeleton-list" aria-hidden="true">
+            <SkeletonRows count={2} />
         </div>
     </main>
+);
+
+/** Placeholder for a stack of titled poster rows (Movies / TV Series pages). */
+export const RowsSkeleton = ({ count = 3, label = "Loading..." }) => (
+    <div role="status" aria-busy="true" aria-live="polite">
+        <span className="visually-hidden">{label}</span>
+        <div className="rows-skeleton-list" aria-hidden="true">
+            <SkeletonRows count={count} />
+        </div>
+    </div>
 );

@@ -1,16 +1,5 @@
-import MovieList from "../../components/MovieList";
-import PageBackButton from "../../components/PageBackButton";
+import BrowsePage from "../Browse/BrowsePage";
 
-const MoviePage = () => {
-    return (
-        <main className="page-content">
-            <div className="page-heading">
-                <PageBackButton />
-                <h1>Movies</h1>
-            </div>
-            <MovieList type={"movies"} />
-        </main>
-    )
-}
+const MoviePage = () => <BrowsePage type="movies" title="Movies" />;
 
 export default MoviePage;

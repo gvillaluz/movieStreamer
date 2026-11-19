@@ -1,5 +1,38 @@
 .scroll-row { position: relative; min-width: 0; }
 
+/* The track: a single snap-scrolling line of cards (overrides the .movie-list grid) */
+.scroll-row .home-grid {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 1.15rem;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: .35rem .2rem 1.15rem;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scroll-row .home-grid::-webkit-scrollbar { display: none; }
+.scroll-row .home-grid > .movie-card {
+  flex: 0 0 clamp(150px, 14vw, 210px);
+  width: clamp(150px, 14vw, 210px);
+  min-width: clamp(150px, 14vw, 210px);
+  max-width: none;
+  scroll-snap-align: start;
+}
+@media (max-width: 1100px) {
+  .scroll-row .home-grid > .movie-card { flex-basis: 180px; min-width: 180px; width: 180px; }
+}
+@media (max-width: 700px) {
+  .scroll-row .home-grid > .movie-card { flex-basis: 132px; min-width: 132px; width: 132px; }
+}
+@media (max-width: 480px) {
+  .scroll-row .home-grid > .movie-card { flex-basis: 124px; min-width: 124px; width: 124px; }
+}
+
 .scroll-row-btn {
   position: absolute;
   top: calc(50% - 2rem);

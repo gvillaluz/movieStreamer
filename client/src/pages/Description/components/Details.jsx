@@ -16,6 +16,8 @@ const Details = ({content, category, handleWatchNow}) =>  {
         name: content.name,
         poster_path: content.poster_path,
         vote_average: content.vote_average,
+        popularity: content.popularity,
+        genre_ids: content.genres?.map((genre) => genre.id),
         release_date: content.release_date,
         first_air_date: content.first_air_date,
         media_type: category,
