@@ -6,21 +6,27 @@ import EmptyState from "./EmptyState";
 import { SkeletonGrid } from "./Skeletons";
 import { SearchContext } from "../context/searchContext";
 import { usePagedContent } from "../hooks/usePagedContent";
+import { NO_FILTERS, sortItems } from "../utils/filters";
 import './MovieList.css';
 
 const BATCH_SIZE = 50;
-// Start the next batch this far before the viewer actually reaches the bottom
-const PREFETCH_MARGIN = "0px 0px 600px 0px";
+// Start the next batch well before the viewer reaches the bottom (about two screens ahead), so it is usually ready in time
+const PREFETCH_MARGIN = "0px 0px 1500px 0px";
 
-/** Popular movies or series (or in-place search results), loading 50 more each time the viewer nears the bottom. */
-const MovieList = ({ type }) => {
+/**
+ * Popular movies or series (or in-place search results), loading 50 more each time the viewer nears the bottom.
+ * `filters` ({ genre, sort }) narrows the list.
+ */
+const MovieList = ({ type, filters = NO_FILTERS }) => {
     const { listSearch, clearListSearch } = useContext(SearchContext);
     const location = useLocation();
     const label = type === "movies" ? "Movies" : "TV Series";
     const query = listSearch.path === location.pathname ? listSearch.query : "";
 
-    const { items, loading, loadingMore, error, hasMore, loadMore, reload } =
-        usePagedContent({ type, query, batchSize: BATCH_SIZE });
+    const { items: loaded, loading, loadingMore, error, hasMore, loadMore, reload } =
+        usePagedContent({ type, query, genre: filters.genre, sort: filters.sort, batchSize: BATCH_SIZE });
+    // TMDB sorts the browse list itself; search results are sorted here
+    const items = query ? sortItems(loaded, filters.sort) : loaded;
 
     // Leaving the page drops its search, so coming back shows the popular list again
     useEffect(() => clearListSearch, [clearListSearch]);
@@ -41,7 +47,7 @@ const MovieList = ({ type }) => {
         return () => observer.disconnect();
     }, [canAutoLoad, loadMore, items.length]);
 
-    const heading = query ? `Search Results for '${query}'` : `Popular ${label}`;
+    const heading = query ? `Search Results for '${query}'` : `Browse all ${type === "movies" ? "movies" : "TV series"}`;
 
     let body;
     if (loading) {

@@ -51,11 +51,8 @@
   min-height: min(78svh, 720px);
   padding: clamp(1.5rem, 5vw, 4rem) clamp(1rem, 6vw, 6rem) clamp(2rem, 6vh, 4rem);
 }
-.home-skeleton-rows {
-  display: grid;
-  gap: clamp(2.5rem, 5vw, 4rem);
-  padding: 0 clamp(1rem, 4vw, 4rem) 3rem;
-}
+.rows-skeleton-list { display: grid; gap: clamp(2.5rem, 5vw, 4rem); }
+.home-skeleton-rows { padding: 0 clamp(1rem, 4vw, 4rem) 3rem; }
 .skeleton-row { display: flex; gap: 1.15rem; overflow: hidden; }
 .skeleton-row .movie-card {
   flex: 0 0 clamp(150px, 14vw, 210px);

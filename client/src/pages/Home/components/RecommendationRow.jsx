@@ -2,6 +2,7 @@ import MovieCard from "../../../components/MovieCard";
 import ScrollRow from "../../../components/ScrollRow";
 import { SkeletonGrid } from "../../../components/Skeletons";
 import useSimilarContent from "../../../hooks/useSimilarContent";
+import { mediaTypeOf } from "../../../utils/filters";
 
 // Fewer recommendations than this reads as a broken row, so it's left out
 const MIN_ITEMS = 4;
@@ -9,9 +10,11 @@ const MIN_ITEMS = 4;
 /**
  * "Since you watched X" / "More like X": TMDB recommendations for one title the viewer watched or saved.
  * `seed` is { id, category: "movie" | "tv", title, reason: "watched" | "favorite" }.
+ * `media` ("", "movie" or "tv") keeps only that kind of title.
  */
-const RecommendationRow = ({ seed }) => {
-    const { items, loading, error } = useSimilarContent(seed.category, seed.id);
+const RecommendationRow = ({ seed, media = "" }) => {
+    const { items: similar, loading, error } = useSimilarContent(seed.category, seed.id);
+    const items = media ? similar.filter((item) => mediaTypeOf(item) === media) : similar;
 
     if (!loading && (error || items.length < MIN_ITEMS)) return null;
 

@@ -8,6 +8,8 @@ import EmptyState from "../../components/EmptyState";
 import { SkeletonGrid } from "../../components/Skeletons";
 import { search } from "../../services/serviceAPI";
 import { SearchContext } from "../../context/searchContext";
+import { FilterBar } from "../../components/FilterBar";
+import { ALL_GENRES, NO_FILTERS, applyFilters, listSorts } from "../../utils/filters";
 import "../Home/HomePage.css";
 import "./SearchPage.css";
 
@@ -23,6 +25,7 @@ const SearchPage = () => {
     const [loading, setLoading] = useState(Boolean(query));
     const [error, setError] = useState("");
     const [attempt, setAttempt] = useState(0);
+    const [filters, setFilters] = useState(NO_FILTERS);
 
     // Keep the search field in step with the page (e.g. after a refresh or Back to an earlier search)
     useEffect(() => { setSearchQuery(query); }, [query, setSearchQuery]);
@@ -45,7 +48,8 @@ const SearchPage = () => {
 
     const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
-    const items = Array.from(new Map(results.map((content) => [content.id, content])).values()).filter(hasPoster);
+    const found = Array.from(new Map(results.map((content) => [content.id, content])).values()).filter(hasPoster);
+    const items = applyFilters(found, filters);
 
     const heading = !query
         ? "Search the library"
@@ -61,6 +65,9 @@ const SearchPage = () => {
                     <span className="eyebrow">Search library</span>
                     <h1>{heading}</h1>
                 </div>
+                {query && !loading && !error && found.length > 0 && (
+                    <FilterBar genres={ALL_GENRES} sorts={listSorts("Best match")} filters={filters} onChange={setFilters} />
+                )}
             </div>
             {!query ? (
                 <EmptyState
@@ -86,7 +93,8 @@ const SearchPage = () => {
                 <EmptyState
                     icon={<FaSearch />}
                     title="No titles found"
-                    message="Try a different title, actor, or series."
+                    message={found.length ? "No results match these filters." : "Try a different title, actor, or series."}
+                    action={found.length ? { label: "Clear filters", onClick: () => setFilters(NO_FILTERS) } : undefined}
                 />
             )}
         </main>
