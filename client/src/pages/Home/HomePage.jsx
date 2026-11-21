@@ -62,6 +62,9 @@ const getPersonalSeeds = (favorites) => {
 const HERO_SLIDES = 6;
 const HERO_INTERVAL = 8000;
 const heroImage = (item) => item.backdrop_path || item.poster_path;
+// Portrait screens (phones, tablets held upright) get the poster: a wide backdrop stretched to cover a tall screen looks zoomed in
+const heroTallImage = (item) => item.poster_path || item.backdrop_path;
+const tmdb = (size, path) => `url(https://image.tmdb.org/t/p/${size}${path})`;
 
 const HomePage = () => {
     const { go } = useAppNavigation();
@@ -155,9 +158,26 @@ const HomePage = () => {
                         <div
                             key={slide.id}
                             className={`hero-backdrop-slide${i === heroIndex ? " active" : ""}`}
-                            style={{ backgroundImage: `url(https://image.tmdb.org/t/p/w1280${heroImage(slide)})` }}
+                            style={{
+                                "--slide-wide": tmdb("w1280", heroImage(slide)),
+                                "--slide-tall": tmdb("w780", heroTallImage(slide)),
+                            }}
                         />
                     ))}
+                    {/* Pre-blurred copy (small image, fixed blur) that fades in as the page scrolls; desktop only */}
+                    <div className="hero-backdrop-blur">
+                        {heroSlides.map((slide, i) => (
+                            <div
+                                key={slide.id}
+                                className={`hero-backdrop-slide${i === heroIndex ? " active" : ""}`}
+                                style={{
+                                    "--slide-wide": tmdb("w300", heroImage(slide)),
+                                    "--slide-tall": tmdb("w342", heroTallImage(slide)),
+                                }}
+                            />
+                        ))}
+                    </div>
+                    <div className="hero-backdrop-dim" />
                 </div>
             )}
             {featured && (

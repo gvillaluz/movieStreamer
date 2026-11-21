@@ -70,6 +70,14 @@
 .movie-meta .meta-type { display: none; } /* shown as the poster badge instead */
 .movie-meta .meta-rating { color: #ffb3b3; font-weight: 600; }
 
+/*
+ * Touch devices: no backdrop blur on the badge. Home shows hundreds of cards, and a blur under
+ * every badge has to be recomputed while scrolling, which made phones and tablets stutter.
+ */
+@media (hover: none), (max-width: 700px) {
+  .type-badge { background: rgba(8, 11, 22, .82); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
 @media (max-width: 700px) {
   .type-badge { top: 6px; left: 6px; padding: .18rem .42rem; font-size: .6rem; border-radius: 6px; }
   .movie-details { padding: .55rem .6rem .65rem; }

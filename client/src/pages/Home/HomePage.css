@@ -7,25 +7,48 @@
 
 /*
  * Scroll-blended backdrop
- * .hero-backdrop = the hero image(s), blurred + dimmed progressively as the page scrolls
- * ::after  = static scrim (text legibility + vignette), never has an edge to seam against
- * Both are fixed to the viewport, so there is no per-section boundary to see.
+ * .hero-backdrop       = the sharp hero image(s), fixed to the viewport
+ * .hero-backdrop-blur  = a pre-blurred copy that fades in as the page scrolls (desktop only)
+ * .hero-backdrop-dim   = a dark layer that fades in as the page scrolls
+ * ::after              = static scrim (text legibility + vignette), never has an edge to seam against
+ * Only opacity is animated on scroll, so the browser never re-runs a blur while scrolling
+ * (animating `filter: blur()` on a full-screen layer was what made phones and tablets stutter).
  */
 .home-page {
   --backdrop-range: 90vh;     /* scroll distance over which the blend completes */
-  --backdrop-blur: 22px;
-  --backdrop-dim: .42;
+  --backdrop-dim: .58;        /* how dark the backdrop gets once scrolled */
 }
 
 .hero-backdrop {
   position: fixed;
-  inset: -3rem;               /* overscan so blurred edges never reveal the page bg */
+  inset: 0;
   z-index: -2;
   pointer-events: none;
-  will-change: filter, transform;
-  animation: backdrop-blend linear both;
+}
+
+.hero-backdrop-blur,
+.hero-backdrop-dim {
+  position: absolute;
+  opacity: 0;
+  will-change: opacity;
+  animation: backdrop-fade-in linear both;
   animation-timeline: scroll(root block);
   animation-range: 0 var(--backdrop-range);
+}
+.hero-backdrop-blur {
+  inset: -3rem;               /* overscan so blurred edges never reveal the sharp image */
+}
+.hero-backdrop-blur .hero-backdrop-slide { filter: blur(18px) saturate(.8); }
+.hero-backdrop-dim {
+  inset: 0;
+  background: #080b16;
+  animation-name: backdrop-dim-in;
+}
+
+/* Touch devices and small screens: skip the blur layer entirely, dimming alone is enough */
+@media (hover: none), (max-width: 700px) {
+  .hero-backdrop-blur { display: none; }
+  .home-page { --backdrop-dim: .66; }
 }
 
 .home-page::after {
@@ -43,16 +66,29 @@
 .hero-backdrop-slide {
   position: absolute;
   inset: 0;
-  background: center / cover no-repeat;
+  background: var(--slide-wide) center / cover no-repeat;
   opacity: 0;
   transition: opacity 1.2s ease;
 }
 .hero-backdrop-slide.active { opacity: 1; }
 
-@keyframes backdrop-blend {
-  from { filter: blur(0) brightness(1) saturate(1); transform: scale(1); }
-  to   { filter: blur(var(--backdrop-blur)) brightness(var(--backdrop-dim)) saturate(.8); transform: scale(1.06); }
+/*
+ * Portrait screens: show the (portrait) poster at full width from the top instead of cropping a
+ * wide backdrop to the screen's height, and fade its bottom edge into the page background.
+ * The poster is 2:3, so at full width it is 150vw tall.
+ */
+@media (orientation: portrait) {
+  .hero-backdrop-slide {
+    background-color: #080b16;
+    /* fade starts early enough to hide the poster's own printed title behind the hero text */
+    background-image: linear-gradient(180deg, transparent 0, transparent 85vw, #080b16 140vw), var(--slide-tall);
+    background-size: 100% 150vw, 100% auto;
+    background-position: center top;
+  }
 }
+
+@keyframes backdrop-fade-in { to { opacity: 1; } }
+@keyframes backdrop-dim-in { to { opacity: var(--backdrop-dim); } }
 
 .home-page.no-hero .home-content { padding-top: 2rem; }
 
@@ -163,12 +199,37 @@
 @supports not (animation-timeline: scroll()) {
   .hero-copy { animation: none; }
   /* No scroll-driven animation: keep a static, softly dimmed backdrop */
-  .hero-backdrop { animation: none; filter: brightness(.7); }
+  .hero-backdrop-blur { display: none; }
+  .hero-backdrop-dim { animation: none; opacity: .3; }
 }
 
 @media (max-width: 700px) {
   .hero { background-position: 63% center; }
-  .hero h1 { font-size: clamp(2.5rem, 12vw, 4rem); }
+  /*
+   * Phones: title and description are set as one pair. The description sits at the 16px reading
+   * size; the title is one clear step up (1.75x), same left edge and measure, tight above it.
+   * Fixed sizes rather than vw, so the pair keeps its proportion on every phone.
+   * The title never runs past three lines, so a long name can't fill the screen.
+   */
+  .hero h1 {
+    max-width: 100%;
+    margin-bottom: .5rem;
+    font-size: 1.75rem;
+    padding-bottom: .06em;      /* room for descenders (g, y) under the clamp */
+    line-height: 1.1;
+    letter-spacing: -.035em;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .hero p {
+    max-width: 100%;
+    font-size: 1rem;
+    line-height: 1.5;
+    text-align: left;           /* a global `p { text-align: justify }` from the details page leaks in on phones */
+    text-wrap: pretty;
+  }
   .home-content { gap: 3rem; margin-top: 0; padding-top: 3rem; }
 }
 
@@ -179,7 +240,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .hero-copy, .hero-slide { animation: none; }
-  .hero-backdrop { animation: none; filter: brightness(.7); }
+  .hero-backdrop-blur { display: none; }
+  .hero-backdrop-dim { animation: none; opacity: .3; }
 }
 
 /* All / Movies / Series sits close to the first row rather than a full row gap away */
