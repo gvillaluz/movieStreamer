@@ -2,10 +2,11 @@ import { useContext } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { SearchContext } from "../../../context/searchContext";
 import { isComingSoon } from "../../../utils/releaseStatus";
+import { isSameTitle } from "../../../utils/filters";
 
 const Details = ({content, category, handleWatchNow}) =>  {
     const { favorites, addToFavorites } = useContext(SearchContext);
-    const isFavorite = favorites.some(fav => fav.id === content.id);
+    const isFavorite = favorites.some(fav => isSameTitle(fav, { id: content.id, media_type: category }));
     const name = content.title ? content.title : content.name;
     const comingSoon = isComingSoon(content);
 
