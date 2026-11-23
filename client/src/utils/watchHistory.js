@@ -13,6 +13,8 @@ const LOG_KEY = "watch_log";
 const MAX_LOG = 10;
 const MIN_SECONDS = 10;      // ignore the first few seconds: probably an accidental click
 const FINISHED_RATIO = 0.95; // past this the title counts as watched
+const SHORT_VIDEO_RATIO = 0.6; // under this share of the real runtime, the video is incomplete
+const MIN_REAL_VIDEO_SECONDS = 60;
 
 // Embed origins we trust progress events from
 export const PLAYER_ORIGINS = ["https://vidlink.pro", "https://vidfast.vc", "https://vidfast.pro", "https://vsembed.ru"];
@@ -89,6 +91,15 @@ export const recordProgress = ({ id, category, title, poster_path, season, episo
     };
     write([entry, ...read().filter((e) => !sameTitle(e, id, category))]);
 };
+
+/**
+ * True when a player reports a video far shorter than TMDB's runtime (a cut-off copy from the provider).
+ * Anything under a minute is ignored because it is more likely an ad than the title itself.
+ */
+export const isShortVideo = (durationSeconds, runtimeMinutes) =>
+    durationSeconds >= MIN_REAL_VIDEO_SECONDS &&
+    runtimeMinutes > 0 &&
+    durationSeconds < runtimeMinutes * 60 * SHORT_VIDEO_RATIO;
 
 const toNumber = (value) => {
     if (value === null || value === "") return undefined;
