@@ -46,6 +46,9 @@ export const NO_FILTERS = { genre: "", sort: "" };
 export const mediaTypeOf = (item) =>
     item.media_type === "tv" || (!item.media_type && item.name && !item.title) ? "tv" : "movie";
 
+/** TMDB numbers movies and series separately, so the same id can be two different titles. */
+export const isSameTitle = (a, b) => String(a.id) === String(b.id) && mediaTypeOf(a) === mediaTypeOf(b);
+
 const genreIdsOf = (item) => item.genre_ids || item.genres?.map((genre) => genre.id) || [];
 const dateOf = (item) => item.release_date || item.first_air_date || "";
 

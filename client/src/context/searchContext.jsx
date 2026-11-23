@@ -1,6 +1,7 @@
 import { createContext, useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAppNavigation } from "../hooks/useAppNavigation";
+import { isSameTitle } from "../utils/filters";
 
 export const SearchContext = createContext();
 
@@ -32,8 +33,8 @@ export function SearchProvider({ children }) {
 
     const addToFavorites = (movie) => {
         setFavorites(prev => {
-            if (prev.some(content => content.id === movie.id)) {
-                return prev.filter(fav => fav.id !== movie.id);
+            if (prev.some(content => isSameTitle(content, movie))) {
+                return prev.filter(fav => !isSameTitle(fav, movie));
             }
             return [...prev, movie];
         });

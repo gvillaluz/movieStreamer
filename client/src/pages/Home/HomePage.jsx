@@ -6,7 +6,7 @@ import ScrollRow from "../../components/ScrollRow";
 import ContinueCard from "../../components/ContinueCard";
 import ContentRow from "../../components/ContentRow";
 import { MediaToggle } from "../../components/FilterBar";
-import { mediaTypeOf } from "../../utils/filters";
+import { isSameTitle, mediaTypeOf } from "../../utils/filters";
 import RecommendationRow from "./components/RecommendationRow";
 import { getContinueWatching, getRecentlyWatched, removeEntry } from "../../utils/watchHistory";
 import { HomeSkeleton } from "../../components/Skeletons";
@@ -46,7 +46,7 @@ const getPersonalSeeds = (favorites) => {
         .slice(0, MAX_WATCHED_ROWS)
         .map(({ id, category, title }) => ({ id, category, title, reason: "watched" }));
 
-    const favorite = [...favorites].reverse().find((fav) => !seeds.some((seed) => String(seed.id) === String(fav.id)));
+    const favorite = [...favorites].reverse().find((fav) => !seeds.some((seed) => isSameTitle(fav, { id: seed.id, media_type: seed.category })));
     if (favorite && (favorite.title || favorite.name)) {
         seeds.push({
             id: favorite.id,

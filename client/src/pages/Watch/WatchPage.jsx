@@ -4,7 +4,7 @@ import './WatchPage.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getEpisodesBySeason, getVideoById } from '../../services/serviceAPI';
 import { convertRuntime } from '../../utils/DurationUtils';
-import { getEntry, parsePlayerMessage, recordProgress } from '../../utils/watchHistory';
+import { getEntry, isShortVideo, parsePlayerMessage, recordProgress } from '../../utils/watchHistory';
 import WatchPageRelated from './components/WatchPageRelated';
 import { FaExclamationTriangle, FaFilm, FaPlay } from 'react-icons/fa';
 import LoadingState from '../../components/LoadingState';
@@ -46,6 +46,11 @@ const WatchPage = () => {
 
     const playerRef = useRef(null);
     const lastSavedRef = useRef(0);
+    // Incomplete videos: providers sometimes serve a cut-off copy, and a reload often gets the full one
+    const [playerAttempt, setPlayerAttempt] = useState(0);
+    const [videoIncomplete, setVideoIncomplete] = useState(false);
+    const retriedRef = useRef(false);
+    const reloadingRef = useRef(false);
     // Where this title was left off. Read once per title so saving progress while watching
     // never changes the player URL (that would reload the video).
     const resume = useMemo(() => getEntry(id, category), [id, category]);
@@ -117,6 +122,25 @@ const WatchPage = () => {
             if (!playerRef.current) return;
             const msg = parsePlayerMessage(event);
             if (!msg || (msg.tmdbId !== undefined && String(msg.tmdbId) !== String(id))) return;
+            if (reloadingRef.current) return;
+
+            const sameSeason = (msg.season ?? season) === season;
+            const runtime = isSeries
+                ? (sameSeason ? episodes?.find(ep => ep.episode_number === (msg.episode ?? episode))?.runtime : undefined)
+                : detail?.runtime;
+
+            if (isShortVideo(msg.duration, runtime)) {
+                if (retriedRef.current) {
+                    setVideoIncomplete(true);
+                } else {
+                    retriedRef.current = true;
+                    reloadingRef.current = true;
+                    setPlayerAttempt((attempt) => attempt + 1);
+                }
+                // Never save progress from a cut-off copy: it would overwrite the real position
+                return;
+            }
+            if (msg.duration > 0) setVideoIncomplete(false);
 
             // Players report many times a second; save every few seconds, and always on the end
             const now = Date.now();
@@ -138,7 +162,7 @@ const WatchPage = () => {
 
         window.addEventListener('message', onMessage);
         return () => window.removeEventListener('message', onMessage);
-    }, [id, category, isSeries, detail, season, episode]);
+    }, [id, category, isSeries, detail, season, episode, episodes]);
 
     // Bring the playing episode into view inside the list (without scrolling the page)
     useEffect(() => {
@@ -173,6 +197,15 @@ const WatchPage = () => {
     // VidLink is the default for everything, anime included: it loads the right show and has working
     // subtitles. VidFast (no anime route) and vsembed were tested and are not reliable for anime.
     const activeServer = server ?? 'vidlink';
+    const activeServerIndex = SERVERS.findIndex(s => s.id === activeServer);
+    const nextServer = SERVERS[(activeServerIndex + 1) % SERVERS.length];
+
+    // Each title, episode and server gets its own reload attempt
+    useEffect(() => {
+        retriedRef.current = false;
+        reloadingRef.current = false;
+        setVideoIncomplete(false);
+    }, [id, category, season, episode, activeServer]);
 
     const handleServerChange = (selected) => {
         setServer(selected);
@@ -366,16 +399,27 @@ const WatchPage = () => {
                         {/* Wait for the details so the right provider is chosen (anime vs. other series) */}
                         {!loading && (
                             <iframe
+                                key={playerAttempt}
                                 ref={playerRef}
                                 className='video'
                                 title='Video player'
                                 src={videoSourceLink}
+                                onLoad={() => { reloadingRef.current = false; }}
                                 allowFullScreen
                                 allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
                                 frameBorder={"0"}
                             />
                         )}
                     </div>
+                    {videoIncomplete && (
+                        <div className='player-notice' role='status'>
+                            <p>{SERVERS[activeServerIndex].label} only has an incomplete copy of this video right now.</p>
+                            {/* Not saved as the preferred server: this copy problem is specific to this title */}
+                            <button type='button' onClick={() => setServer(nextServer.id)}>
+                                Try {nextServer.label}
+                            </button>
+                        </div>
+                    )}
                     {loading ? (
                         <LoadingState label="Loading player details..." />
                     ) : loadError ? (
