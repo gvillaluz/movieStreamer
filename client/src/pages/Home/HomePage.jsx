@@ -154,6 +154,16 @@ const HomePage = () => {
         <main className={`home-page${featured ? "" : " no-hero"}`}>
             {featured && (
                 <div className="hero-backdrop" aria-hidden="true">
+                    {/* Soft, enlarged copy behind the sharp image: fills the sides when the screen is wider than the 16:9 backdrop, so the sharp image never needs cropping */}
+                    <div className="hero-backdrop-fill">
+                        {heroSlides.map((slide, i) => (
+                            <div
+                                key={slide.id}
+                                className={`hero-backdrop-slide${i === heroIndex ? " active" : ""}`}
+                                style={{ "--slide-wide": tmdb("w300", heroImage(slide)) }}
+                            />
+                        ))}
+                    </div>
                     {heroSlides.map((slide, i) => (
                         <div
                             key={slide.id}
