@@ -17,7 +17,7 @@ const SHORT_VIDEO_RATIO = 0.6; // under this share of the real runtime, the vide
 const MIN_REAL_VIDEO_SECONDS = 60;
 
 // Embed origins we trust progress events from
-export const PLAYER_ORIGINS = ["https://vidlink.pro", "https://vidfast.vc", "https://vidfast.pro", "https://vsembed.ru"];
+export const PLAYER_ORIGINS = ["https://vidlink.pro", "https://vsembed.ru", "https://player.vidzee.wtf"];
 
 const readList = (key) => {
     try {
@@ -110,7 +110,7 @@ const toNumber = (value) => {
 /**
  * Normalise a window "message" event from an embed provider.
  * Returns null for anything that isn't a trusted player progress event.
- *   VidLink and VidFast (same shape):  { type: "PLAYER_EVENT", data: { event, currentTime, duration, mtmdbId, mediaType, season, episode } }
+ *   VidLink and VidZee (same shape): { type: "PLAYER_EVENT", data: { event, currentTime, duration, mtmdbId, mediaType, season, episode } }
  *   vsembed:   { type: "PLAYER_EVENT", data: { player_status, player_progress, player_duration, player_info: {...} } }
  */
 export const parsePlayerMessage = (event) => {

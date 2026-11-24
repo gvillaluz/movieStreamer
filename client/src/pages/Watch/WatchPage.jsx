@@ -14,7 +14,7 @@ import { SkeletonGrid } from '../../components/Skeletons';
 // Embed providers. Not every title exists on every provider, so the viewer can switch.
 const SERVERS = [
     { id: 'vidlink', label: 'Server 1' },
-    { id: 'vidfast', label: 'Server 2' },
+    { id: 'vidzee', label: 'Server 2' },
     { id: 'vsembed', label: 'Server 3' },
 ];
 
@@ -194,9 +194,12 @@ const WatchPage = () => {
         }));
     }
 
-    // VidLink is the default for everything, anime included: it loads the right show and has working
-    // subtitles. VidFast (no anime route) and vsembed were tested and are not reliable for anime.
-    const activeServer = server ?? 'vidlink';
+    // VidLink is the default. Anime (a Japanese-language animated series, the same rule as the Anime rows)
+    // opens on VidZee instead: VidLink fails to show subtitles on some anime episodes. The trade-off is that
+    // VidZee's anime source is a single fixed 720p stream with no quality menu. A server the viewer picked
+    // by hand always wins. VidFast was replaced by VidZee (no anime route); vsembed is not reliable for anime.
+    const isAnime = isSeries && detail?.original_language === 'ja' && !!genres?.some(g => g.id === 16);
+    const activeServer = server ?? (isAnime ? 'vidzee' : 'vidlink');
     const activeServerIndex = SERVERS.findIndex(s => s.id === activeServer);
     const nextServer = SERVERS[(activeServerIndex + 1) % SERVERS.length];
 
@@ -222,15 +225,14 @@ const WatchPage = () => {
 
     // Only providers that serve their own player are used. Wrappers such as VidCore and Videasy
     // nest the real player in a sandboxed iframe, which the player detects and refuses to run in.
-    // VidFast is loaded from vidfast.vc directly: vidfast.pro redirects there, which adds a round trip
-    // and moves the player to a different origin than the iframe's `allow="fullscreen"` was granted to,
-    // so its fullscreen button did nothing.
-    // VidLink and VidFast show their controls (and a CC button) on any mouse movement;
+    // VidLink shows its controls (and a CC button) on any mouse movement;
     // vsembed is the original provider, kept as the last resort: its controls often never appear.
-    const videoSourceLink = activeServer === 'vidfast'
+    // VidZee takes no URL options: it always autoplays and ignores autoplay / start-position parameters
+    // (all tested). It remembers the viewer's position itself, per browser.
+    const videoSourceLink = activeServer === 'vidzee'
         ? (isSeries
-            ? `https://vidfast.vc/tv/${id}/${season}/${episode}?autoPlay=false&nextButton=true&theme=e50914${startAt}`
-            : `https://vidfast.vc/movie/${id}?autoPlay=false&theme=e50914${startAt}`)
+            ? `https://player.vidzee.wtf/embed/tv/${id}/${season}/${episode}`
+            : `https://player.vidzee.wtf/embed/movie/${id}`)
         : activeServer === 'vsembed'
         ? (isSeries
             ? `https://vsembed.ru/embed/tv/${id}/${season}/${episode}?ds_lang=en${startAt}`
