@@ -73,11 +73,49 @@
 .hero-backdrop-slide.active { opacity: 1; }
 
 /*
+ * Desktop: the sharp backdrop is fitted to the screen (whole 16:9 frame visible) instead of
+ * `cover`-cropped. Whatever the screen is wider/taller than 16:9, .hero-backdrop-fill (the same
+ * image, small and upscaled so it reads as soft) shows around it, and the sharp image's edges
+ * fade into it. Phones keep their own layout in the portrait block below.
+ */
+.hero-backdrop-fill {
+  position: absolute;
+  inset: -3rem;               /* overscan so the blurred edges never show the page bg */
+  background: #080b16;
+}
+.hero-backdrop-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 11, 22, .4);
+}
+.hero-backdrop > .hero-backdrop-slide {
+  inset: 0 auto auto 50%;
+  width: min(100vw, 177.78vh);
+  aspect-ratio: 16 / 9;
+  transform: translateX(-50%);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent), linear-gradient(180deg, #000 88%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent), linear-gradient(180deg, #000 88%, transparent);
+  mask-composite: intersect;
+}
+
+/*
  * Portrait screens: show the (portrait) poster at full width from the top instead of cropping a
  * wide backdrop to the screen's height, and fade its bottom edge into the page background.
  * The poster is 2:3, so at full width it is 150vw tall.
  */
-@media (orientation: portrait) {
+/* Phones and touch tablets only: a desktop browser window that happens to be taller than wide keeps the wide backdrop */
+@media (orientation: portrait) and (max-width: 700px), (orientation: portrait) and (hover: none) {
+  .hero-backdrop-fill { display: none; }
+  .hero-backdrop > .hero-backdrop-slide {
+    inset: 0;
+    width: auto;
+    aspect-ratio: auto;
+    transform: none;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
   .hero-backdrop-slide {
     background-color: #080b16;
     /* fade starts early enough to hide the poster's own printed title behind the hero text */
